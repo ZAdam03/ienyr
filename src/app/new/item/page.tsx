@@ -1,45 +1,35 @@
-"use client";
-import React, { use, useState } from "react";
+///src/app/new/item/page.tsx
+'use client';
+import React, { useState } from "react";
 import { InputMask, InputMaskChangeEvent } from "primereact/inputmask";
 import { FloatLabel } from "primereact/floatlabel";
 import { InputText } from "primereact/inputtext";
 import { AutoComplete, AutoCompleteChangeEvent, AutoCompleteCompleteEvent } from "primereact/autocomplete";
-import { PrismaClient } from "@prisma/client";
+
 
 interface Type {
-    label: string;
-    value: number;
+  label: string;
+  value: string;
 }
-
-const prisma = new PrismaClient();
 
 export default function NewItemPage() {
     const [asset, setAsset] = useState<string | undefined | null>();
     const [equipment, setEquipment] = useState<string | undefined | null>();
     const [description, setDescription] = useState<string>('');
-    //type
-    // const [selectedType, setSelectedType] = useState<Type>(null);
-    // const [filteredTypes, setFilteredTypes] = useState<Type[]>(null);
-    // const items = Array.from({ length: 100000 }).map((_, i) => ({ label: `Item #${i}`, value: i }));
+    const [selectedType, setSelectedType] = useState<Type | null>(null);
+    const [filteredTypes, setFilteredTypes] = useState<Type[]>([]);
 
-    // const searchTypes = async (event: AutoCompleteCompleteEvent) => {
-    //     const query = await prisma.item.findMany({
-    //         distinct: ['type'], // A 'brand' mező alapján kérdezzük le az egyedi értékeket
-    //         select: {
-    //             brand: true, // Csak a brand mezőt kérjük le
-    //         },
-    //     });
-    //     let _filteredTypes = [];
+    const searchTypes = async (event: AutoCompleteCompleteEvent) => {
+        const res = await fetch("/api/items-type");
+        const allTypes: Type[] = await res.json();
 
-    //     for(let i = 0; i < items.length; i++) {
-    //         let item = items[i];
-    //         if (item.label.toLowerCase().indexOf(query.toLowerCase()) === 0) {
-    //             _filteredTypes.push(item);
-    //         }
-    //     }
+        const filtered = allTypes.filter((item) =>
+        item.label.toLowerCase().startsWith(event.query.toLowerCase())
+        );
 
-    //     setFilteredTypes(_filteredTypes);
-    // }
+        setFilteredTypes(filtered);
+    };
+
 
     return (
         <div>Adjon hozzá!
@@ -75,10 +65,20 @@ export default function NewItemPage() {
                     </FloatLabel>
                 </div>
 
-                {/* <div>
-                    <AutoComplete value={selectedType} suggestions={filteredTypes} completeMethod={searchTypes}
-                    virtualScrollerOptions={{ itemSize: 38 }} field="label" dropdown onChange={(e: AutoCompleteChangeEvent) => setSelectedType(e.value)} />
-                </div> */}
+                <div>
+                    <FloatLabel>
+                        <AutoComplete
+                            value={selectedType}
+                            suggestions={filteredTypes}
+                            completeMethod={searchTypes}
+                            virtualScrollerOptions={{ itemSize: 38 }}
+                            field="label"
+                            dropdown
+                            onChange={(e: AutoCompleteChangeEvent) => setSelectedType(e.value)}
+                        />
+                        <label htmlFor="type">Típus</label>
+                    </FloatLabel>
+                </div>
 
             </div>
         
