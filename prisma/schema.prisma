@@ -1,0 +1,432 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+//jogosultságok
+model Role {
+  id           String   @id @default(uuid())
+  name         String   @unique
+  description  String?
+  azureGroupId String   @unique
+  permissions  RolePermission[]
+}
+model RolePermission {
+  id             String   @id @default(uuid())
+  roleId         String
+  role           Role     @relation(fields: [roleId], references: [id])
+  permissionName String
+}
+
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  createdAt DateTime @default(now())
+  azureId   String?
+  azEmail   String?
+  lastLogin DateTime? //még nem használjuk
+  toolbook  Toolbook[] @relation("owner")
+  deactivatedToolbooks Toolbook[] @relation("toolbookDeactivatedBy")
+  createdToolbookItems ToolbookItem[] @relation("toolbookItemCreatedBy")
+  deactivatedToolbookItems ToolbookItem[] @relation("toolbookItemDeactivatedBy")
+  createdToolbookDocs ToolbookDocs[] @relation("toolbookDocsCreatedBy")
+  modifiedItems ItemMetaData[] @relation("itemModifiedBy")
+  createdItemDocs ItemDocs[] @relation("itemDocsCreatedBy")
+  createdItemPlaces ItemPlace[] @relation("itemPlaceCreatedBy")
+  deactivatedItemPlaces ItemPlace[] @relation("itemPlaceDeactivatedBy")
+  createdStructureMappings StructureMapping[] @relation("structureMappingCreatedBy")
+  deactivatedStructureMappings StructureMapping[] @relation("structureMappingDeactivatedBy")
+  createdCarts Cart[] @relation("cartCreatedBy")
+  modifiedCarts Cart[] @relation("cartModifiedBy")
+  createdViews View[] @relation("viewCreatedBy")
+  modifiedViews View[] @relation("viewModifiedBy")
+  createdScrappages Scrappage[]
+  closedScrappages Scrappage[] @relation("ScrappageClosedBy")
+  finishedScrappageItems ScrappageItem[]
+  createdInventory Inventory[]
+  createdInventoryItems InventoryItem[]
+  createdInventoryIssues InventoryIssue[]
+  closedInventory Inventory[] @relation("InventoryClosedBy")
+  createdMoves Move[]
+  closedMoves Move[] @relation("MoveClosedBy")
+  finishedMoveItems MoveItem[]
+  messages Message[]
+}
+
+model Toolbook {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation("owner", fields: [userId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  createdAt       DateTime @default(now())
+  isActive        Boolean  @default(true)
+  deactivatedAt   DateTime?
+  deactivatedById String?
+  deactivatedBy   User?    @relation("toolbookDeactivatedBy", fields: [deactivatedById], references: [id])
+  toolbookItems   ToolbookItem[]
+}
+
+model ToolbookItem {
+  id            String   @id @default(uuid())
+  toolbookId    String
+  toolbook      Toolbook @relation(fields: [toolbookId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  itemId        String
+  item          Item     @relation(fields: [itemId], references: [id])
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  createdById   String
+  createdBy     User     @relation("toolbookItemCreatedBy", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  deactivedAt   DateTime?
+  deactivedById String?
+  deactivedBy   User?    @relation("toolbookItemDeactivatedBy", fields: [deactivedById], references: [id])
+  docs  ToolbookDocs[]
+}
+
+model ToolbookDocs {
+  id             String   @id @default(uuid())
+  toolbookItemId String
+  toolbookItem   ToolbookItem @relation(fields: [toolbookItemId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  path           String
+  fileName       String
+  fileType       String
+  createdAt      DateTime @default(now())
+  createdById    String
+  createdBy      User     @relation("toolbookDocsCreatedBy", fields: [createdById], references: [id])
+}
+
+model Model {
+  id              String   @id @default(uuid())
+  name            String
+  picture         String? // URL to the picture of the model
+  pictureFileName String? // file name of the picture
+  weight          Float?  // weight in kg
+  Items           Item[]
+}
+
+enum ItemStatus {
+  új // new
+  aktív // active
+  selejtezett // scrapped
+}
+
+model Item {
+  id           String   @id @unique
+  eid          String?   @unique
+  description  String?
+  type         String   // monitor, pc, laptop, printer, scanner, other
+  brand        String
+  modelId      String
+  model        Model   @relation(fields: [modelId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  serialNumber String?
+  status       ItemStatus @default(új)
+  toolbookItem ToolbookItem[]
+  metaData     ItemMetaData[]
+  licenceKeys  ItemLicenceKey[]
+  docs         ItemDocs[]
+  place        ItemPlace[]
+  ParentItem   StructureMapping[] @relation("structureMappingChild")
+  ChildItems   StructureMapping[] @relation("structureMappingParent")
+  carts        CartItem[]
+  scrappages   ScrappageItem[]
+  inventories  InventoryItem[]
+  moves        MoveItem[]
+}
+
+model ItemMetaData {
+  id           String   @id @default(uuid())
+  itemId       String
+  item         Item     @relation(fields: [itemId], references: [id])
+  description  String
+  notes        String
+  modifiedAt   DateTime @default(now())
+  modifiedById String
+  modifiedBy   User     @relation("itemModifiedBy", fields: [modifiedById], references: [id])
+}
+
+model ItemLicenceKey {
+  id           String   @id @default(uuid())
+  itemId       String
+  item         Item     @relation(fields: [itemId], references: [id])
+  key          String
+  description  String?
+}
+
+model ItemDocs {
+  id           String   @id @default(uuid())
+  itemId       String
+  item         Item     @relation(fields: [itemId], references: [id])
+  path         String
+  fileName     String
+  fileType     String
+  createdAt    DateTime @default(now())
+  createdById  String
+  createdBy    User     @relation("itemDocsCreatedBy", fields: [createdById], references: [id])
+}
+
+model ItemPlace {
+  id           String   @id @default(uuid())
+  itemId       String
+  item         Item     @relation(fields: [itemId], references: [id])
+  isStored     Boolean   @default(true) // felvételkor raktározva lesz
+  roomId       String? // helyszín azonosító
+  room         Room?    @relation(fields: [roomId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  cabinetId    String? // szekrény azonosító
+  cabinet      Cabinet? @relation(fields: [cabinetId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  createdById  String
+  createdBy    User     @relation("itemPlaceCreatedBy", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  deactivatedAt   DateTime?
+  deactivatedById String?
+  deactivatedBy   User? @relation("itemPlaceDeactivatedBy", fields: [deactivatedById], references: [id])
+}
+
+model StructureMapping {
+  id              String   @id @default(uuid())
+  parentItemId    String
+  parentItem      Item @relation("structureMappingParent", fields: [parentItemId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  childItemId     String
+  childItem       Item @relation("structureMappingChild", fields: [childItemId], references: [id])
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  createdById     String
+  createdBy       User     @relation("structureMappingCreatedBy", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  deactivatedAt   DateTime?
+  deactivatedById String?
+  deactivatedBy   User? @relation("structureMappingDeactivatedBy", fields: [deactivatedById], references: [id])
+}
+
+model Cart {
+  id           String   @id @default(uuid())
+  description  String
+  color        String
+  isShared     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  createdById  String
+  createdBy    User     @relation("cartCreatedBy", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  lastModifiedAt   DateTime @default(now())
+  lastModifiedById String
+  lastModifiedBy   User @relation("cartModifiedBy", fields: [lastModifiedById], references: [id])
+  items        CartItem[]
+}
+
+model CartItem {
+  id          String   @id @default(uuid())
+  cartId      String
+  cart        Cart     @relation(fields: [cartId], references: [id])
+  itemId      String
+  item        Item     @relation(fields: [itemId], references: [id])
+}
+
+model View {
+  id           String   @id @default(uuid())
+  description  String
+  createdAt    DateTime @default(now())
+  createdById  String
+  createdBy    User     @relation("viewCreatedBy", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  lastModifiedAt   DateTime @default(now())
+  lastModifiedById String
+  lastModifiedBy   User @relation("viewModifiedBy", fields: [lastModifiedById], references: [id])
+  columns      ViewColumn[]
+}
+
+model ViewColumn {
+  id           String   @id @default(uuid())
+  viewId       String
+  view         View     @relation(fields: [viewId], references: [id])
+  tableName    String
+  columnName   String
+}
+
+//helyiségek:
+model Company {
+  id           String   @id @default(uuid())
+  description  String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  sites        Site[]
+}
+model Site {
+  id           String   @id @default(uuid())
+  companyId    String
+  company      Company  @relation(fields: [companyId], references: [id])
+  description  String
+  zipCode      String
+  city         String
+  address      String
+  address2     String?
+  coordinates  String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  buildings    Building[]
+}
+model Building {
+  id           String   @id @default(uuid())
+  siteId       String
+  site         Site     @relation(fields: [siteId], references: [id])
+  description  String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  floors       Floor[]
+}
+model Floor {
+  id           String   @id @default(uuid())
+  buildingId   String
+  building     Building @relation(fields: [buildingId], references: [id])
+  description  String?   @default("földszint") // pl. földszint, emelet
+  number       Int?      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  rooms        Room[]
+  blueprint    FloorBlueprint[]
+}
+model Room {
+  id           String   @id @default(uuid())
+  floorId      String
+  floor        Floor    @relation(fields: [floorId], references: [id])
+  description  String  // pl. tárgyaló, raktár, számlázás
+  number       Int?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  cabinets     Cabinet[]
+  moveToRoomItems MoveItem[]
+  items        ItemPlace[] // ide kerülnek az eszközök, amik ebben a helyiségben vannak
+}
+model Cabinet {
+  id           String   @id @default(uuid())
+  roomId       String
+  room         Room     @relation(fields: [roomId], references: [id])
+  description  String?  // pl. 1-es szekrény, 2-es szekrény
+  letter       String?  // pl. A, B, C, 1, 2, 3
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  moveToCabinetItems MoveItem[]
+  items        ItemPlace[] // ide kerülnek az eszközök, amik ebben a szekrényben vannak
+}
+model FloorBlueprint {
+  id           String   @id @default(uuid())
+  floorId      String
+  floor        Floor    @relation(fields: [floorId], references: [id])
+  path         String
+  fileName     String
+}
+
+//funkciók:
+// - selejtezés
+model Scrappage {
+  id           String   @id @default(uuid())
+  description  String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  createdById  String
+  createdBy    User     @relation(fields: [createdById], references: [id])
+  closedAt     DateTime?
+  closedById   String?
+  closedBy     User?    @relation("ScrappageClosedBy", fields: [closedById], references: [id])
+  items        ScrappageItem[]
+}
+
+model ScrappageItem {
+  id           String   @id @default(uuid())
+  scrappageId  String
+  scrappage    Scrappage @relation(fields: [scrappageId], references: [id])
+  itemId       String
+  item         Item     @relation(fields: [itemId], references: [id])
+  isFinished   Boolean  @default(false)
+  finishedAt    DateTime?
+  finishedById  String?
+  finishedBy    User?    @relation(fields: [finishedById], references: [id])
+}
+
+// - leltározás
+model Inventory {
+  id           String   @id @default(uuid())
+  description  String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  createdById  String
+  createdBy    User     @relation(fields: [createdById], references: [id])
+  closedAt     DateTime?
+  closedById   String?
+  closedBy     User?    @relation("InventoryClosedBy", fields: [closedById], references: [id])
+  numberOfActiveToolbooks Int?
+  numberOfItems Int?
+  items        InventoryItem[]
+  inventoryIssues InventoryIssue[]
+}
+
+model InventoryItem {
+  id           String   @id @default(uuid())
+  inventoryId  String
+  inventory    Inventory @relation(fields: [inventoryId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  itemId       String
+  item         Item     @relation(fields: [itemId], references: [id])
+  isTrue       Boolean?
+  createdAt    DateTime? @default(now())
+  createdById  String?
+  createdBy    User?     @relation(fields: [createdById], references: [id])
+}
+
+model InventoryIssue {
+  id           String   @id @default(uuid())
+  description  String
+  inventoryId  String
+  inventory    Inventory @relation(fields: [inventoryId], references: [id])
+  createdAt    DateTime @default(now())
+  createdById  String
+  createdBy    User     @relation(fields: [createdById], references: [id])
+}
+
+// - selejtezés
+model Move {
+  id           String   @id @default(uuid())
+  description  String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  createdById  String
+  createdBy    User     @relation(fields: [createdById], references: [id])
+  closedAt     DateTime?
+  closedById   String?
+  closedBy     User?    @relation("MoveClosedBy", fields: [closedById], references: [id])
+  items        MoveItem[]
+}
+
+model MoveItem {
+  id              String   @id @default(uuid())
+  moveId          String
+  move            Move @relation(fields: [moveId], references: [id])
+  itemId          String
+  item            Item     @relation(fields: [itemId], references: [id])
+  isStored        Boolean
+  moveToRoomId    String?
+  moveToRoom      Room?    @relation(fields: [moveToRoomId], references: [id])
+  moveToCabinetId String?
+  moveToCabinet   Cabinet? @relation(fields: [moveToCabinetId], references: [id])
+  isFinished      Boolean  @default(false)
+  finishedAt       DateTime?
+  finishedById     String?
+  finishedBy       User?    @relation(fields: [finishedById], references: [id])
+}
+
+model Message {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  title        String
+  content      String
+  createdAt    DateTime @default(now())
+  isRead       Boolean  @default(false)
+}
+

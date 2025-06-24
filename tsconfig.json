@@ -15,7 +15,10 @@
     "incremental": true,
     "plugins": [
       {
-        "name": "next"
+        "name": "next",
+        // "prisma": {
+        //   "seed": "bun ./prisma/seed.ts",
+        // }
       }
     ],
     "paths": {

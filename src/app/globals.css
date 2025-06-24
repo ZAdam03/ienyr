@@ -1,4 +1,9 @@
-:root {
+@import 'primereact/resources/themes/lara-dark-amber/theme.css'; /* Válaszd ki a kívánt témát */
+@import 'primereact/resources/primereact.min.css';
+@import 'primeicons/primeicons.css';
+@import 'primeflex/primeflex.css';
+
+/* :root {
   --background: #ffffff;
   --foreground: #171717;
 }
@@ -39,4 +44,4 @@ a {
   html {
     color-scheme: dark;
   }
-}
+} */

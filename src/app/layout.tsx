@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Menubar } from "primereact/menubar";
+import { PrimeReactProvider } from "primereact/api";
+import MySidebar from "@/app/components/Sidebar";
+import { Button } from "primereact/button";
+import MyMenubar from "@/app/components/MyMenubar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,7 +30,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+        <PrimeReactProvider>
+          {/* <Navbar /> */}
+          <MyMenubar/>
+          <MySidebar/>
+          <main className="p-4">{children}</main>
+        </PrimeReactProvider>
       </body>
     </html>
   );
