@@ -64,6 +64,7 @@ model User {
   closedMoves Move[] @relation("MoveClosedBy")
   finishedMoveItems MoveItem[]
   messages Message[]
+  modifiedModels ModelMetaData[] @relation("modelModifiedBy")
 }
 
 model Toolbook {
@@ -108,11 +109,25 @@ model ToolbookDocs {
 
 model Model {
   id              String   @id @default(uuid())
-  name            String
+  type            String   // monitor, pc, laptop, printer, scanner, software ..etc
+  brand           String
+  model           String
   picture         String? // URL to the picture of the model
   pictureFileName String? // file name of the picture
-  weight          Float?  // weight in kg
+  weight          Int?  // weight in kg
   Items           Item[]
+  metaData        ModelMetaData[]
+}
+
+model ModelMetaData {
+  id           String   @id @default(uuid())
+  modelId      String
+  model        Model    @relation(fields: [modelId], references: [id])
+  description  String //autocomplete
+  notes        String //user
+  modifiedAt   DateTime @default(now())
+  modifiedById String
+  modifiedBy   User     @relation("modelModifiedBy", fields: [modifiedById], references: [id])
 }
 
 enum ItemStatus {
@@ -125,8 +140,6 @@ model Item {
   id           String   @id @unique
   eid          String?   @unique
   description  String?
-  type         String   // monitor, pc, laptop, printer, scanner, other
-  brand        String
   modelId      String
   model        Model   @relation(fields: [modelId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   serialNumber String?

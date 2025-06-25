@@ -58,6 +58,11 @@ export default function MyMenubar() {
                             url: '/new/item',
                         },
                         {
+                            label: 'Model',
+                            icon: 'pi pi-fw pi-barcode',
+                            url: '/new/model',
+                        },
+                        {
                             label: 'Épület',
                             icon: 'pi pi-fw pi-building'
                         }

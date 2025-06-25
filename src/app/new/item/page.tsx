@@ -7,7 +7,7 @@ import { InputText } from "primereact/inputtext";
 import { AutoComplete, AutoCompleteChangeEvent, AutoCompleteCompleteEvent } from "primereact/autocomplete";
 
 
-interface Type {
+interface I {
   label: string;
   value: string;
 }
@@ -16,12 +16,12 @@ export default function NewItemPage() {
     const [asset, setAsset] = useState<string | undefined | null>();
     const [equipment, setEquipment] = useState<string | undefined | null>();
     const [description, setDescription] = useState<string>('');
-    const [selectedType, setSelectedType] = useState<Type | null>(null);
-    const [filteredTypes, setFilteredTypes] = useState<Type[]>([]);
+    const [selectedType, setSelectedType] = useState<I | null>(null);
+    const [filteredTypes, setFilteredTypes] = useState<I[]>([]);
 
     const searchTypes = async (event: AutoCompleteCompleteEvent) => {
         const res = await fetch("/api/items-type");
-        const allTypes: Type[] = await res.json();
+        const allTypes: I[] = await res.json();
 
         const filtered = allTypes.filter((item) =>
         item.label.toLowerCase().startsWith(event.query.toLowerCase())
@@ -34,7 +34,7 @@ export default function NewItemPage() {
     return (
         <div>Adjon hozzá!
         
-            <div className="card flex justify-content-center">
+            <div className="card flex flex-wrap justify-content-center gap-5 p-4">
 
                 <div className="flex-auto">
                     <FloatLabel>
@@ -52,7 +52,6 @@ export default function NewItemPage() {
 
                 <div className="flex-auto">
                     <FloatLabel>
-                        {/* @ts-ignore */}
                         <InputText id="description" value={description} onChange={(e) => setDescription(e.target.value)}/>
                         <label htmlFor="description">SAP megnevezés</label>
                     </FloatLabel>
