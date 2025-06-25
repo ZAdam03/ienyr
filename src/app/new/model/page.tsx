@@ -79,14 +79,11 @@ export default function NewModelPage() {
                     weight: value1,
                 }),
             });
-            console.log('POST body:', res);
-
 
             if (!res.ok) throw new Error('Hiba a mentés során.');
 
             const data = await res.json();
-            alert('Sikeresen mentve!');
-            console.log(data);
+            alert('Sikeresen mentve! ID: \n' + data.id);
 
             // Opcionálisan: form reset
             setSelectedType(null);
