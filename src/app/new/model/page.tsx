@@ -109,7 +109,7 @@ export default function NewModelPage() {
         <br />
             <div className="card flex flex-wrap p-fluid gap-5">
 
-                <div>
+                <div className="flex-auto">
                     <FloatLabel>
                         <AutoComplete
                             value={selectedType}
@@ -124,7 +124,7 @@ export default function NewModelPage() {
                     </FloatLabel>
                 </div>
 
-                <div>
+                <div className="flex-auto">
                     <FloatLabel>
                         <AutoComplete
                             value={selectedBrand}
