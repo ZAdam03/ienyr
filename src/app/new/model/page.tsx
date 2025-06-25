@@ -1,7 +1,6 @@
 ///src/app/new/model/page.tsx
 'use client';
 import React, { useState } from "react";
-import { InputMask, InputMaskChangeEvent } from "primereact/inputmask";
 import { FloatLabel } from "primereact/floatlabel";
 import { InputText } from "primereact/inputtext";
 import { AutoComplete, AutoCompleteChangeEvent, AutoCompleteCompleteEvent } from "primereact/autocomplete";
@@ -101,6 +100,11 @@ export default function NewModelPage() {
         }
     };
 
+    // Új lap (tab) megnyitása a modellek listájához
+    const handleButtonClick = () => {
+        window.open('/model/list', '_blank');
+    };
+
 
     return (
         <div>
@@ -166,6 +170,8 @@ export default function NewModelPage() {
                 </div>
                 
             </div>
+            <br />
+            <Button label="Modellek" link onClick={handleButtonClick}/>
         
         </div>
         
