@@ -99,7 +99,7 @@ export default function NewModelPage() {
 
     // Új lap (tab) megnyitása a modellek listájához
     const handleButtonClick = () => {
-        window.open('/model/list', '_blank');
+        window.open('/item/model', '_blank');
     };
 
 
