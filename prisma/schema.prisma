@@ -139,7 +139,7 @@ enum ItemStatus {
 model Item {
   id           String   @id @unique
   eid          String?   @unique
-  description  String?
+  description  String
   modelId      String
   model        Model   @relation(fields: [modelId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   serialNumber String?

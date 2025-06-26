@@ -1,4 +1,4 @@
-// src/app/api/model/route.ts
+// src/app/api/item/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
@@ -7,20 +7,20 @@ const prisma = new PrismaClient();
 export async function POST(req: NextRequest) {
   const body = await req.json();
 
-  const { type, brand, model, picture, weight } = body;
+  const { id, eid, description, modelId, serialNumber } = body;
 
   try {
-    const newModel = await prisma.model.create({
+    const newItem = await prisma.item.create({
       data: {
-        type,
-        brand,
-        model,
-        picture,
-        weight,
+        id, 
+        eid, 
+        description, 
+        modelId, 
+        serialNumber
       },
     });
 
-    return NextResponse.json(newModel, { status: 201 });
+    return NextResponse.json(newItem, { status: 201 });
   } catch (error) {
     console.error('API error:', error);
     return NextResponse.json({ error: 'Hiba a mentés során' }, { status: 500 });
@@ -28,10 +28,10 @@ export async function POST(req: NextRequest) {
 }
 export async function GET() {
   try {
-    const models = await prisma.model.findMany();
-    return NextResponse.json(models);
+    const items = await prisma.model.findMany();
+    return NextResponse.json(items);
   } catch (error) {
     console.error('API error:', error);
-    return NextResponse.json({ error: 'Hiba a modellek lekérése során' }, { status: 500 });
+    return NextResponse.json({ error: 'Hiba az eszközök lekérése során' }, { status: 500 });
   }
 }

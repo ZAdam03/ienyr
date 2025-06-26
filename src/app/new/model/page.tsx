@@ -64,7 +64,6 @@ export default function NewModelPage() {
             alert("Töltsd ki az összes kötelező mezőt!");
             return;
         }
-        console.log("sgfrgsrgsreg:: ", selectedType, selectedBrand, field1, picture, value1);
         try {
             const res = await fetch('/api/model', {
                 method: 'POST',
