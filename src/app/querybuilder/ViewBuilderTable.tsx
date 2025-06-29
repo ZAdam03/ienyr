@@ -7,16 +7,21 @@ import { MultiSelect } from 'primereact/multiselect';
 import { Button } from 'primereact/button';
 
 const ALL_COLUMNS = [
-  { field: 'id', header: 'Eszközszám' },
-  { field: 'eid', header: 'Berendezésszám' },
-  { field: 'type', header: 'Típus' },
-  { field: 'brand', header: 'Gyártó' },
-  { field: 'model', header: 'Modell' },
-  { field: 'description', header: 'Leírás' },
-  { field: 'serialNumber', header: 'Gyári szám' },
-  { field: 'status', header: 'Státusz' },
-  { field: 'toolbookName', header: 'Akinek a nevén van' },
-  { field: 'roomOrCabinet', header: 'Hely (szoba/szekrény)' },
+    { field: 'id', header: 'Eszközszám' },
+    { field: 'eid', header: 'Berendezésszám' },
+    { field: 'type', header: 'Típus' },
+    { field: 'brand', header: 'Gyártó' },
+    { field: 'model', header: 'Modell' },
+    { field: 'description', header: 'Leírás' },
+    { field: 'serialNumber', header: 'Gyári szám' },
+    { field: 'status', header: 'Státusz' },
+    { field: 'toolbookName', header: 'Akinek a nevén van' },
+    { field: 'roomOrCabinet', header: 'Hely (szoba/szekrény)' },
+    { field: 'licenceKeys', header: 'Licenc kulcsok' },
+    { field: 'parentId', header: 'Szülő eszköz azonosító' },
+    { field: 'parentDescription', header: 'Szülő eszköz leírás' },
+    { field: 'scrappageDescription', header: 'Selejtezés leírás' },
+    { field: 'scrappageClosedAt', header: 'Selejtezés dátuma' },
 ];
 
 export default function ViewBuilderTable({ data }: { data: any[] }) {

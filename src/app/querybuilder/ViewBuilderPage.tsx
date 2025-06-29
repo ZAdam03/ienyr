@@ -9,6 +9,7 @@ export default async function ViewBuilderPage() {
         where: { isActive: true },
         include: {
           toolbook: {
+            
             include: {
               user: true,
             },
@@ -22,12 +23,37 @@ export default async function ViewBuilderPage() {
           cabinet: true,
         },
       },
+      licenceKeys: true,
+      ParentItem: {
+        include: {
+          parentItem: true,
+        },
+      },
+      scrappages: {
+        include: {
+          scrappage: true,
+        },
+      },
     },
   });
 
   const transformed = items.map((item) => {
     const toolbookName = item.toolbookItem[0]?.toolbook?.user?.name ?? '';
     const roomOrCabinet = item.place[0]?.room?.description ?? item.place[0]?.cabinet?.description ?? '';
+
+    const toolbookItem = item.toolbookItem.find(tbi => tbi.isActive);
+    const toolbookCreatedAt = toolbookItem?.createdAt?.toISOString() ?? '';
+
+    const licenceKeys = item.licenceKeys.map(lk => `${lk.key} (${lk.description ?? ''})`).join(', ');
+
+    const parentMapping = item.ParentItem[0];
+    const parentId = parentMapping?.parentItemId ?? '';
+    const parentDescription = parentMapping?.parentItem?.description ?? '';
+
+    const scrappageItem = item.scrappages[0];
+    const scrappageDescription = scrappageItem?.scrappage?.description ?? '';
+    const scrappageClosedAt = scrappageItem?.scrappage?.closedAt?.toISOString() ?? '';
+
 
     return {
       id: item.id,
@@ -40,6 +66,11 @@ export default async function ViewBuilderPage() {
       status: item.status,
       toolbookName,
       roomOrCabinet,
+      licenceKeys,
+      parentId,
+      parentDescription,
+      scrappageDescription,
+      scrappageClosedAt,
     };
   });
 
