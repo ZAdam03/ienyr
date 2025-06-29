@@ -3,9 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Menubar } from "primereact/menubar";
 import { PrimeReactProvider } from "primereact/api";
-import MySidebar from "@/app/components/Sidebar";
+import MySidebar from "@/components/Sidebar";
 import { Button } from "primereact/button";
-import MyMenubar from "@/app/components/MyMenubar";
+import MyMenubar from "@/components/MyMenubar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
