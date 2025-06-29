@@ -62,7 +62,7 @@ export default function AllItemsTable({ items }: { items: Item[] }) {
     const onRowDoubleClick = (event: import('primereact/datatable').DataTableRowClickEvent) => {
         const item = event.data as Item;
         if (!item?.id) return;
-        router.push(`/item/model/${item.id}`);
+        router.push(`/item/${item.id}`);
     };
 
     return (

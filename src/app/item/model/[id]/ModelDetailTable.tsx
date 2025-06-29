@@ -56,7 +56,7 @@ export default function ModelDetailTable({ items }: { items: Item[] }) {
     function handleRowDoubleClick(event: import('primereact/datatable').DataTableRowClickEvent) {
         const item = event.data as Item;
         if (!item?.id) return; // védelmi ellenőrzés
-        router.push(`/item/model/${item.id}`);
+        router.push(`/item/${item.id}`);
     };
 
     return (
