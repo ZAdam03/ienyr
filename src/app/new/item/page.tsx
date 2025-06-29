@@ -14,8 +14,8 @@ interface I {
 }
 
 export default function NewItemPage() {
-    const [asset1, setAsset1] = useState<string | undefined | null>();
-    const [equipment1, setEquipment1] = useState<string | undefined | null>();
+    const [asset1, setAsset1] = useState<string>('');
+    const [equipment1, setEquipment1] = useState<string>('');
     const [description, setDescription] = useState<string>('');
     const [modelId, setModelId] = useState<string>('');
     const [sN, setSN] = useState<string>('');
@@ -66,14 +66,14 @@ export default function NewItemPage() {
 
                 <div className="flex-auto">
                     <FloatLabel>
-                        <InputMask id="asset1" value={asset1} onChange={(e: InputMaskChangeEvent) => setAsset1(e.target.value)} mask="999 999 99" placeholder="99 999 999"/>
+                        <InputText id="asset1" value={asset1} onChange={(e) => setAsset1(e.target.value)} placeholder="10022233"/>
                         <label htmlFor="asset1">Eszközszám*</label>
                     </FloatLabel>
                 </div>
 
                 <div className="flex-auto">
                     <FloatLabel>
-                        <InputMask id="equipment1" value={equipment1} onChange={(e: InputMaskChangeEvent) => setEquipment1(e.target.value)} mask="999 999 99" placeholder="99 999 999"/>
+                        <InputText id="equipment1" value={equipment1} onChange={(e) => setEquipment1(e.target.value)} placeholder="10022233"/>
                         <label htmlFor="equipment1">Berendezésszám</label>
                     </FloatLabel>
                 </div>
