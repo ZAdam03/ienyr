@@ -23,6 +23,11 @@ export default function MyMenubar() {
             icon: 'pi pi-desktop',
             items: [
                 {
+                    label: 'Összes eszköz',
+                    icon: 'pi pi-star',
+                    url: '/item/every',
+                },
+                {
                     label: 'Számítógépek',
                     icon: 'pi pi-desktop',
                     url: '/item/list',
