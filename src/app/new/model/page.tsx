@@ -120,7 +120,7 @@ export default function NewModelPage() {
                             dropdown
                             onChange={(e: AutoCompleteChangeEvent) => setSelectedType(e.value)}
                         />
-                        <label htmlFor="type">Típus</label>
+                        <label htmlFor="type">Típus/kategória</label>
                     </FloatLabel>
                 </div>
 
@@ -142,7 +142,7 @@ export default function NewModelPage() {
                 <div className="flex-auto">
                     <FloatLabel>
                         <InputText id="field1" value={field1} onChange={(e) => setfield1(e.target.value)}/>
-                        <label htmlFor="field1">Modell</label>
+                        <label htmlFor="field1">Modell/típus</label>
                     </FloatLabel>
                 </div>
 

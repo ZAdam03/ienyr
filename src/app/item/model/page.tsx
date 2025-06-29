@@ -8,6 +8,7 @@ import { InputText } from 'primereact/inputtext';
 import { IconField } from 'primereact/iconfield';
 import { InputIcon } from 'primereact/inputicon';
 import { Model } from '@prisma/client';
+import { useRouter } from 'next/navigation';
 
 export default function ViewModels() {
     const [models, setModels] = useState<Model[]>([]);
@@ -48,6 +49,17 @@ export default function ViewModels() {
 
     const header = renderHeader();
 
+    //Double click handler
+    const router = useRouter();
+
+    function handleRowDoubleClick(event: import('primereact/datatable').DataTableRowClickEvent) {
+        const model = event.data as Model;
+        if (!model?.id) return; // védelmi ellenőrzés
+        router.push(`/item/model/${model.id}`);
+    };
+
+
+
     return (
         <div className="card">
             <DataTable
@@ -64,6 +76,7 @@ export default function ViewModels() {
                 emptyMessage="Nincs találat."
                 tableStyle={{ minWidth: '60rem' }}
                 rowsPerPageOptions={[10, 25, 50]}
+                onRowDoubleClick={handleRowDoubleClick}
             >
                 <Column field="id" header="Azonosító" sortable filter filterPlaceholder="Azonosító keresése" style={{ width: '20%' }} />
                 <Column field="type" header="Típus" sortable filter filterPlaceholder="Típus keresése" style={{ width: '20%' }} />
@@ -86,5 +99,3 @@ export default function ViewModels() {
         </div>
     );
 }
-
-<link rel="stylesheet" href="" />
