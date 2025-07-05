@@ -32,17 +32,6 @@ export default function ItemDetail({ item }: ItemDetailProps) {
                 <p><strong>Akinek a nevén van:</strong> {item.toolbookName ?? 'Nincs adat'}</p>
                 <p><strong>Hely:</strong> {item.roomOrCabinet ?? 'Nincs adat'}</p>
             </div>
-            <div className="flex-auto">
-                {item.picture ? (
-                    <img
-                        src={item.picture}
-                        alt="Kép"
-                        className="mt-2 max-w-xs rounded shadow"
-                    />
-                ) : (
-                    'Nincs kép'
-                )}
-            </div>
         </div>
     );
 }

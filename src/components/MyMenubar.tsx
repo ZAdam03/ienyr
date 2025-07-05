@@ -28,6 +28,16 @@ export default function MyMenubar() {
                     url: '/item/every',
                 },
                 {
+                    label: 'Lekérdezés szerkesztő',
+                    icon: 'pi pi-hammer',
+                    url: '/querybuilder',
+                },
+                {
+                    label: 'Modelek',
+                    icon: 'pi pi-fw pi-barcode',
+                    url: '/item/model',
+                },
+                {
                     label: 'Számítógépek',
                     icon: 'pi pi-desktop',
                     url: '/item/list',
@@ -58,14 +68,14 @@ export default function MyMenubar() {
                     icon: 'pi pi-fw pi-plus',
                     items: [
                         {
-                            label: 'Eszköz',
-                            icon: 'pi pi-fw pi-desktop',
-                            url: '/new/item',
-                        },
-                        {
                             label: 'Model',
                             icon: 'pi pi-fw pi-barcode',
                             url: '/new/model',
+                        },
+                        {
+                            label: 'Eszköz',
+                            icon: 'pi pi-fw pi-desktop',
+                            url: '/new/item',
                         },
                         {
                             label: 'Épület',
@@ -168,6 +178,7 @@ export default function MyMenubar() {
                         style={{ cursor: 'pointer' }}></img>;
     const end = (
         <div className="flex align-items-center gap-2">
+            {/* <ThemeSwitcher/> */}
             <InputText placeholder="Search" type="text" className="w-8rem sm:w-auto" />
             <Avatar image="https://primefaces.org/cdn/primereact/images/avatar/amyelsner.png" shape="circle" />
         </div>
