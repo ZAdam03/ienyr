@@ -65,6 +65,13 @@ model User {
   finishedMoveItems MoveItem[]
   messages Message[]
   modifiedModels ModelMetaData[] @relation("modelModifiedBy")
+  modifiedCompanies Company[]
+  modifiedSites Site[]
+  modifiedBuildings Building[]
+  modifiedFloors Floor[]
+  modifiedRooms Room[]
+  modifiedCabinets Cabinet[]
+  modifiedDepartments Department[]
 }
 
 model Toolbook {
@@ -269,6 +276,9 @@ model Company {
   description  String
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
+  lastModifiedAt   DateTime? @default(now())
+  lastModifiedById String?
+  lastModifiedBy   User? @relation(fields: [lastModifiedById], references: [id])
   sites        Site[]
 }
 model Site {
@@ -283,7 +293,11 @@ model Site {
   coordinates  String?
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
+  lastModifiedAt   DateTime? @default(now())
+  lastModifiedById String?
+  lastModifiedBy   User? @relation(fields: [lastModifiedById], references: [id])
   buildings    Building[]
+  departments  Department[]
 }
 model Building {
   id           String   @id @default(uuid())
@@ -292,6 +306,9 @@ model Building {
   description  String
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
+  lastModifiedAt   DateTime? @default(now())
+  lastModifiedById String?
+  lastModifiedBy   User? @relation(fields: [lastModifiedById], references: [id])
   floors       Floor[]
 }
 model Floor {
@@ -302,6 +319,9 @@ model Floor {
   number       Int?      @default(0)
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
+  lastModifiedAt   DateTime? @default(now())
+  lastModifiedById String?
+  lastModifiedBy   User? @relation(fields: [lastModifiedById], references: [id])
   rooms        Room[]
   blueprint    FloorBlueprint[]
 }
@@ -309,10 +329,15 @@ model Room {
   id           String   @id @default(uuid())
   floorId      String
   floor        Floor    @relation(fields: [floorId], references: [id])
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
   description  String  // pl. tárgyaló, raktár, számlázás
   number       Int?
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
+  lastModifiedAt   DateTime? @default(now())
+  lastModifiedById String?
+  lastModifiedBy   User? @relation(fields: [lastModifiedById], references: [id])
   cabinets     Cabinet[]
   moveToRoomItems MoveItem[]
   items        ItemPlace[] // ide kerülnek az eszközök, amik ebben a helyiségben vannak
@@ -325,8 +350,24 @@ model Cabinet {
   letter       String?  // pl. A, B, C, 1, 2, 3
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
+  lastModifiedAt   DateTime? @default(now())
+  lastModifiedById String?
+  lastModifiedBy   User? @relation(fields: [lastModifiedById], references: [id])
   moveToCabinetItems MoveItem[]
   items        ItemPlace[] // ide kerülnek az eszközök, amik ebben a szekrényben vannak
+}
+model Department {
+  id           String   @id @default(uuid())
+  siteId       String
+  site         Site     @relation(fields: [siteId], references: [id])
+  description  String
+  costCenter   String? // költséghely
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  lastModifiedAt   DateTime? @default(now())
+  lastModifiedById String?
+  lastModifiedBy   User? @relation(fields: [lastModifiedById], references: [id])
+  rooms        Room[]
 }
 model FloorBlueprint {
   id           String   @id @default(uuid())

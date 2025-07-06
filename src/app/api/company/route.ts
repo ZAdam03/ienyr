@@ -23,10 +23,18 @@ export async function POST(req: NextRequest) {
     }
 }
 
-// GET: Összes company lekérése (site-okkal együtt)
+// GET: Összes company lekérése
 export async function GET() {
     try {
-        const companies = await prisma.company.findMany();
+        const companies = await prisma.company.findMany({
+            include: {
+                lastModifiedBy: {
+                    select: {
+                        name: true,
+                    },
+                },
+            },
+        });
 
         return NextResponse.json(companies);
     } catch (error) {

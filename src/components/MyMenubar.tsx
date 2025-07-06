@@ -108,7 +108,8 @@ export default function MyMenubar() {
         },
         {
             label: 'Lokációk',
-            icon: 'pi pi-map-marker'
+            icon: 'pi pi-map-marker',
+            url: '/company'
         },
         {
             label: 'Projects',

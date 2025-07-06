@@ -69,8 +69,9 @@ export default async function ItemPage({ params }: Props) {
     return (
         <div>
             <h1>Eszköz részletei</h1>
-            <div className="grid grid-cols-1 md:grid-cols-4 grid-rows-auto gap-4">
-                <div className="aspect-[1/1] md:col-span-1 shadow rounded p-4">
+            <div className="card flex flex-wrap p-fluid gap-5">
+
+                <div className="flex-auto">
                     <ItemDetail
                     item={{
                         id: item.id,
@@ -88,7 +89,8 @@ export default async function ItemPage({ params }: Props) {
                     }}
                     />
                 </div>
-                <div className="flex-auto aspect-[1/1] md:col-span-1 shadow rounded p-4">
+
+                <div className="flex-auto">
                     {item.model?.picture ? (
                         <img
                             src={item.model?.picture ?? ''}
@@ -99,8 +101,13 @@ export default async function ItemPage({ params }: Props) {
                         'Nincs kép'
                     )}
                 </div>
+                
+                <div className='card gap-2 flex'>
+                    <Button>Szerkesztés</Button>
+                    <Button>Kosárba</Button>
+                </div>
 
-                <div className="aspect-[2/1] md:col-span-2 bg-white shadow rounded p-4">
+                <div className="card">
                     <h2>Térkép</h2>
                     {/* térkép komponens */}
                 </div>
