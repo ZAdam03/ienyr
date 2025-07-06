@@ -6,6 +6,7 @@ import { MenuItem } from 'primereact/menuitem';
 import { Badge } from 'primereact/badge';
 import { Avatar } from 'primereact/avatar';
 import { useRouter } from 'next/navigation';
+import { signOut, useSession } from 'next-auth/react';
 
 export default function MyMenubar() {
     // @ts-ignore
@@ -171,6 +172,12 @@ export default function MyMenubar() {
     ];
     
     const router = useRouter();
+    const { data: session, status } = useSession();
+
+    if (status === 'loading') return null;
+
+    const user = session?.user;
+
     const start = <img alt="logo" 
                         src="/ienyr_logo_e_c.svg" 
                         height="40" 
@@ -180,8 +187,19 @@ export default function MyMenubar() {
     const end = (
         <div className="flex align-items-center gap-2">
             {/* <ThemeSwitcher/> */}
+            <button onClick={() => signOut()} className="mt-4 px-4 py-2 bg-red-500 text-white rounded">
+                Kijelentkezés
+            </button>
             <InputText placeholder="Search" type="text" className="w-8rem sm:w-auto" />
-            <Avatar image="https://primefaces.org/cdn/primereact/images/avatar/amyelsner.png" shape="circle" />
+            {user?.image ? (
+                <Avatar image={user.image} shape="circle" size="large" />
+            ) : (
+                <Avatar label={user?.name?.charAt(0) || '?'} shape="circle" size="large" />
+            )}
+            <div>
+                <p className="font-semibold">{user?.name}</p>
+                <p className="text-sm text-gray-500">{user?.email}</p>
+            </div>
         </div>
     );
 

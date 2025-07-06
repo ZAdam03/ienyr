@@ -189,6 +189,8 @@ export default function CompanyTable() {
                 <Column field="description" header="Leírás" sortable filter filterPlaceholder="Leírás szűrése" />
                 <Column field="isActive" header="Aktív" sortable filter filterPlaceholder="I/N" />
                 <Column field="createdAt" header="Létrehozás dátuma" sortable/>
+                <Column field="lastModifiedAt" header="Utolsó módosítás" sortable />
+                <Column field="lastModifiedBy.name" header="Módosította" sortable />
             </DataTable>
 
             <Dialog visible={companyDialog} style={{ width: '32rem' }} header="Company Details" modal className="p-fluid" footer={companyDialogFooter} onHide={hideDialog}>

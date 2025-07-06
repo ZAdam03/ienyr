@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 const prisma = new PrismaClient();
 
@@ -8,12 +10,22 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { id, description, isActive } = body;
 
+    const session = await getServerSession(authOptions);
+    const appUserId = (session?.user as any)?.appUserId;
+
+    if (!appUserId) {
+    return NextResponse.json({ error: 'Hiányzik a felhasználói azonosító' }, { status: 401 });
+    }
+
+    console.log("my userID: ", appUserId);
+
     try {
         const newCompany = await prisma.company.create({
-        data: {
-            description,
-            isActive: isActive ?? true,
-        },
+            data: {
+                description,
+                isActive: isActive ?? true,
+                lastModifiedById: appUserId,
+            },
         });
 
         return NextResponse.json(newCompany, { status: 201 });
@@ -31,6 +43,7 @@ export async function GET() {
                 lastModifiedBy: {
                     select: {
                         name: true,
+                        id: true,
                     },
                 },
             },
