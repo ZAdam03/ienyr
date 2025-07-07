@@ -1,3 +1,4 @@
+// company/page.tsx
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -110,7 +111,7 @@ export default function CompanyTable() {
     function handleRowDoubleClick(event: import('primereact/datatable').DataTableRowClickEvent) {
         const company = event.data as Company;
         if (!company?.id) return; // védelmi ellenőrzés
-        router.push(`/site/${company.id}`);
+        router.push(`/company/${company.id}`);
     };
 
     const exportCSV = () => {

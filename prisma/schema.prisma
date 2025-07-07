@@ -290,7 +290,8 @@ model Site {
   city         String
   address      String
   address2     String?
-  coordinates  String?
+  latitude     String?
+  longitude    String?
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   lastModifiedAt   DateTime? @default(now())

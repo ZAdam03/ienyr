@@ -1,10 +1,14 @@
 // src/app/api/item/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { getToken } from 'next-auth/jwt';
 
 const prisma = new PrismaClient();
+const secret = process.env.AUTH_SECRET!;
 
 export async function POST(req: NextRequest) {
+  const token = await getToken({ req, secret });
+  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = await req.json();
 
   const { id, eid, description, modelId, serialNumber } = body;
@@ -26,7 +30,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Hiba a mentés során' }, { status: 500 });
   }
 }
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const token = await getToken({ req, secret });
+  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
     const items = await prisma.model.findMany();
     return NextResponse.json(items);
