@@ -10,9 +10,9 @@ import L from 'leaflet';
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 
 L.Icon.Default.mergeOptions({
-  iconUrl: '/leaflet/marker-icon.png',
-  iconRetinaUrl: '/leaflet/marker-icon-2x.png',
-  shadowUrl: '/leaflet/marker-shadow.png',
+  iconUrl: 'https://unpkg.com/leaflet/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet/dist/images/marker-icon-2x.png',
+  shadowUrl: 'https://unpkg.com/leaflet/dist/images/marker-shadow.png',
 });
 
 

@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import ModelDetailTable from './ModelDetailTable'; // külön komponens, client oldali
+import ItemTable from './ItemTable';
 
 interface Props {
     params: { id: string };
@@ -146,6 +147,7 @@ export default async function ModelDetailPage({ params }: Props) {
 
             {/* ⬇️ itt jön a client oldal */}
             <ModelDetailTable items={mergedItems} />
+            <ItemTable/>
         </div>
     );
 }

@@ -6,6 +6,7 @@ import { MenuItem } from 'primereact/menuitem';
 import { useParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import SiteTable from './SiteTable';
+import DepartmentTable from './DepartmentTable';
 
 // ⚠️ Térkép komponenst csak kliens oldalon töltjük be!
 const SiteMap = dynamic(() => import('./SiteMap'), { ssr: false });
@@ -13,8 +14,9 @@ const SiteMap = dynamic(() => import('./SiteMap'), { ssr: false });
 export default function Sites() {
     const [activeIndex, setActiveIndex] = useState(0);
     const items: MenuItem[] = [
-        { label: 'Táblázat', icon: 'pi pi-table' },
-        { label: 'Térkép', icon: 'pi pi-map' },
+        { label: 'Telephelyek', icon: 'pi pi-table' },
+        { label: 'Telephely térkép', icon: 'pi pi-map' },
+        { label: 'Részlegek', icon: 'pi pi-table' },
     ];
 
     const params = useParams();
@@ -27,6 +29,7 @@ export default function Sites() {
                 {/* @ts-ignore */}
                 {activeIndex === 0 && <SiteTable companyId={companyId} />}
                 {activeIndex === 1 && <SiteMap companyId={companyId} />}
+                {activeIndex === 2 && <DepartmentTable companyId={companyId} />}
             </div>
         </div>
     );
