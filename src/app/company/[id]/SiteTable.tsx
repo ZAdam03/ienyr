@@ -109,9 +109,13 @@ export default function SiteTable() {
         dt.current?.exportCSV();
     };
 
+    const [importDialog, setImportDialog] = useState<boolean>(false);
+    const [jsonData, setJsonData] = useState<Site[]>([]);
+
     const leftToolbarTemplate = () => (
         <div className="flex gap-2">
             <Button label="Új" icon="pi pi-plus" severity="success" onClick={openNew} />
+            <Button label="Új JSON-ból" icon="pi pi-download" severity="help" onClick={() => setImportDialog(true)} />
             {selectedSite && (
                 <Button label="Módosítás" icon="pi pi-pencil" onClick={() => editSite(selectedSite)} />
             )}
@@ -213,6 +217,78 @@ export default function SiteTable() {
                     <InputSwitch id="isActive" checked={site.isActive} onChange={(e) => onActiveChange(e.value)} />
                 </div>
             </Dialog>
+
+            <Dialog visible={importDialog} style={{ width: '50rem' }} header="Tömeges JSON import" modal className="p-fluid" onHide={() => setImportDialog(false)}>
+            <div className="mb-3">
+                <input
+                    type="file"
+                    accept="application/json"
+                    onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (evt) => {
+                                try {
+                                    const result = JSON.parse(evt.target?.result as string) as Site[];
+                                    const withCompanyId = result.map((item) => ({
+                                        ...item,
+                                        companyId,
+                                        id: '', // új rekordként kezeljük
+                                        createdAt: new Date(),
+                                        lastModifiedAt: null,
+                                        lastModifiedById: null,
+                                    }));
+                                    setJsonData(withCompanyId);
+                                } catch (err) {
+                                    toast.current?.show({ severity: 'error', summary: 'Hibás JSON', detail: 'Nem sikerült beolvasni a fájlt', life: 3000 });
+                                }
+                            };
+                            reader.readAsText(file);
+                        }
+                    }}
+                />
+            </div>
+
+            {jsonData.length > 0 && (
+                <>
+                    <DataTable value={jsonData} scrollable scrollHeight="300px">
+                        <Column field="description" header="Leírás" />
+                        <Column field="zipCode" header="Irányítószám" />
+                        <Column field="city" header="Város" />
+                        <Column field="address" header="Cím" />
+                        <Column field="address2" header="Cím 2" />
+                        <Column field="latitude" header="Szélesség" />
+                        <Column field="longitude" header="Hosszúság" />
+                        <Column field="isActive" header="Aktív" />
+                    </DataTable>
+
+                    <div className="mt-4 flex justify-end gap-2">
+                        <Button label="Mégse" icon="pi pi-times" outlined onClick={() => {
+                            setImportDialog(false);
+                            setJsonData([]);
+                        }} />
+                        <Button label="Mentés" icon="pi pi-check" onClick={async () => {
+                            try {
+                                await Promise.all(jsonData.map(site =>
+                                    fetch('/api/site', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify(site),
+                                    })
+                                ));
+                                toast.current?.show({ severity: 'success', summary: 'Siker', detail: 'Telephelyek feltöltve', life: 3000 });
+                                setImportDialog(false);
+                                setJsonData([]);
+                                refresh();
+                            } catch (err) {
+                                toast.current?.show({ severity: 'error', summary: 'Hiba', detail: 'Nem sikerült menteni', life: 3000 });
+                            }
+                        }} />
+                    </div>
+                </>
+            )}
+            </Dialog>
+
         </div>
     );
 }

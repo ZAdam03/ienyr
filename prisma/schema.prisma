@@ -358,7 +358,7 @@ model Cabinet {
   items              ItemPlace[] // ide kerülnek az eszközök, amik ebben a szekrényben vannak
 }
 model Department {
-  id               String   @id @unique
+  id               String   @id @default(uuid())
   companyId        String
   company          Company  @relation(fields: [companyId], references: [id])
   description      String

@@ -1,3 +1,4 @@
+// FILE: /src/app/api/site/[id]/route.ts (PATCH)
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
@@ -8,7 +9,6 @@ const prisma = new PrismaClient();
 export async function PATCH(req: NextRequest) {
     const body = await req.json();
     const { id: siteId, description, zipCode, city, address, address2, latitude, longitude, isActive } = body;
-    console.log('MY______siteId: ', siteId);
 
     const session = await getServerSession(authOptions);
     const userId = (session?.user as any)?.appUserId;
