@@ -1,4 +1,4 @@
-// FILE: /src/app/api/floor/route.ts (GET, POST)
+// FILE: /src/app/api/room/route.ts (GET, POST)
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
@@ -9,20 +9,21 @@ const prisma = new PrismaClient();
 export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
-        const buildingId = searchParams.get('buildingId');
+        const floorId = searchParams.get('floorId');
         
-        const where = buildingId ? { buildingId } : {};
+        const where = floorId ? { floorId } : {};
         
-        const floors = await prisma.floor.findMany({
+        const rooms = await prisma.room.findMany({
             where,
             include: {
-                // building: true,
+                floor: true,
+                department: true,
                 lastModifiedBy: { select: { name: true } },
             },
         });
-        return NextResponse.json(floors);
+        return NextResponse.json(rooms);
     } catch (error) {
-        console.error('GET /api/floor error:', error);
+        console.error('GET /api/room error:', error);
         return NextResponse.json({ error: 'Lekérési hiba' }, { status: 500 });
     }
 }
@@ -30,9 +31,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
-        buildingId,
-        description = 'földszint',
-        number = 0,
+        floorId,
+        departmentId,
+        description,
+        number,
         isActive = true,
     } = body;
 
@@ -42,18 +44,19 @@ export async function POST(req: NextRequest) {
     if (!userId) return NextResponse.json({ error: 'Nincs felhasználói azonosító' }, { status: 401 });
 
     try {
-        const newFloor = await prisma.floor.create({
+        const newRoom = await prisma.room.create({
             data: {
-                buildingId,
+                floorId,
+                departmentId,
                 description,
                 number,
                 isActive,
                 lastModifiedById: userId,
             },
         });
-        return NextResponse.json(newFloor, { status: 201 });
+        return NextResponse.json(newRoom, { status: 201 });
     } catch (error) {
-        console.error('POST /api/floor error:', error);
+        console.error('POST /api/room error:', error);
         return NextResponse.json({ error: 'Létrehozási hiba' }, { status: 500 });
     }
 }

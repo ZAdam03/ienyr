@@ -1,15 +1,15 @@
 // src/app/floor/[id]/RoomTable.tsx
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Room } from '@prisma/client';
 import { InputText } from 'primereact/inputtext';
 import { InputNumber } from 'primereact/inputnumber';
 import { InputSwitch } from 'primereact/inputswitch';
 import { Dropdown } from 'primereact/dropdown';
-import { GenericMaintenanceTable } from '@/components/GenericMaintenanceTable';
 import { formatDate } from '@/lib/formateDate';
+import { GenericMaintenanceTable } from '@/components/GenericMaintenanceTable';
 
 export default function RoomTable() {
     const params = useParams();
@@ -20,7 +20,14 @@ export default function RoomTable() {
         // Betöltjük az osztályokat a dropdownhoz
         fetch('/api/department')
             .then(res => res.json())
-            .then(data => setDepartments(data));
+            .then(data => {
+                // Formázzuk a megjelenítendő értékeket
+                const formatted = data.map((dept: any) => ({
+                    ...dept,
+                    label: `${dept.description}${dept.costCenter ? ` (${dept.costCenter})` : ''}`
+                }));
+                setDepartments(formatted);
+            });
     }, []);
 
     const emptyRoom: Room = {
@@ -28,7 +35,7 @@ export default function RoomTable() {
         floorId,
         departmentId: null,
         description: '',
-        number: null,
+        number: 0,
         isActive: true,
         createdAt: new Date(),
         lastModifiedAt: null,
@@ -39,7 +46,14 @@ export default function RoomTable() {
         { field: 'id', header: 'Azonosító', sortable: true },
         { field: 'description', header: 'Leírás', sortable: true, filter: true },
         { field: 'number', header: 'Szoba szám', sortable: true },
-        { field: 'department.description', header: 'Osztály', sortable: true },
+        { 
+            field: 'department.label', 
+            header: 'Osztály', 
+            sortable: true,
+            body: (row: any) => row.department ? 
+                `${row.department.description}${row.department.costCenter ? ` (${row.department.costCenter})` : ''}` 
+                : '-'
+        },
         { field: 'isActive', header: 'Aktív', sortable: true, body: (row: Room) => row.isActive ? 'Igen' : 'Nem' },
         {
             field: 'createdAt',
@@ -79,12 +93,18 @@ export default function RoomTable() {
                 <label htmlFor="departmentId" className="font-bold">Osztály</label>
                 <Dropdown
                     id="departmentId"
-                    options={departments}
-                    optionLabel="description"
+                    options={[
+                        { label: 'Nincs osztály kiválasztva', value: null },
+                        ...departments
+                    ]}
+                    optionLabel="label"
                     optionValue="id"
                     value={room.departmentId}
                     onChange={(e) => onInputChange({ target: { value: e.value } }, 'departmentId')}
                     placeholder="Válassz osztályt"
+                    filter
+                    filterBy="label"
+                    showClear
                 />
             </div>
             <div className="field">

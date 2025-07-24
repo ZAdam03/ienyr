@@ -87,7 +87,14 @@ export function GenericMaintenanceTable<T extends { id: string; isActive?: boole
         .then(data => {
             if (parentId) {
             // Filter by parentId if it exists in the entity
-            const filtered = data.filter((e: any) => e.companyId === parentId || e.siteId === parentId || e.buildingId === parentId);
+            const filtered = data.filter((e: any) => 
+                e.companyId === parentId || 
+                e.siteId === parentId || 
+                e.buildingId === parentId || 
+                e.floorId === parentId || 
+                e.roomId === parentId || 
+                e.cabinetId === parentId || 
+                e.departmentId === parentId);
             setEntities(filtered);
             } else {
             setEntities(data);
@@ -103,6 +110,10 @@ export function GenericMaintenanceTable<T extends { id: string; isActive?: boole
         if ('companyId' in newEntity) (newEntity as any).companyId = parentId;
         if ('siteId' in newEntity) (newEntity as any).siteId = parentId;
         if ('buildingId' in newEntity) (newEntity as any).buildingId = parentId;
+        if ('floorId' in newEntity) (newEntity as any).floorId = parentId;
+        if ('roomId' in newEntity) (newEntity as any).roomId = parentId;
+        if ('cabinetId' in newEntity) (newEntity as any).cabinetId = parentId;
+        if ('departmentId' in newEntity) (newEntity as any).departmentId = parentId;
         }
         setEntity(newEntity);
         setSubmitted(false);
@@ -176,7 +187,11 @@ export function GenericMaintenanceTable<T extends { id: string; isActive?: boole
                 ...(parentId && { 
                 companyId: parentId,
                 siteId: parentId,
-                buildingId: parentId 
+                buildingId: parentId,
+                floorId: parentId,
+                roomId: parentId,
+                cabinetId: parentId,
+                departmentId: parentId
                 }),
                 id: '', // új rekordként kezeljük
                 createdAt: new Date(),
@@ -258,8 +273,8 @@ export function GenericMaintenanceTable<T extends { id: string; isActive?: boole
     };
 
     const renderHeader = () => {
-        {/* @ts-ignore */}
-        const value = filters.global?.value || '';
+
+        const value = (filters.global && 'value' in filters.global ? filters.global.value : '') || '';
 
         return (
         <IconField iconPosition="left">
@@ -294,7 +309,7 @@ export function GenericMaintenanceTable<T extends { id: string; isActive?: boole
         <Toast ref={toast} />
         <Toolbar className="mb-4" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
         
-         {/* @ts-ignore */}
+        {/* @ts-ignore */}
         <DataTable<T>
             ref={dt}
             value={entities}
