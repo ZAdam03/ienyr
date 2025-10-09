@@ -1,4 +1,13 @@
-:root {
+@import 'primereact/resources/themes/lara-dark-amber/theme.css'; /* Válaszd ki a kívánt témát */
+@import 'primereact/resources/primereact.min.css';
+@import 'primeicons/primeicons.css';
+@import 'primeflex/primeflex.css';
+
+@import 'leaflet/dist/leaflet.css';
+.leaflet-container { width: 100%; height: 400px; }
+
+
+/* :root {
   --background: #ffffff;
   --foreground: #171717;
 }
@@ -39,4 +48,4 @@ a {
   html {
     color-scheme: dark;
   }
-}
+} */
