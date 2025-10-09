@@ -10,6 +10,8 @@ import { InputSwitch } from 'primereact/inputswitch';
 import { Dropdown } from 'primereact/dropdown';
 import { formatDate } from '@/lib/formateDate';
 import { GenericMaintenanceTable } from '@/components/GenericMaintenanceTable';
+import Link from 'next/link';
+import router from 'next/router';
 
 export default function RoomTable() {
     const params = useParams();
@@ -46,13 +48,24 @@ export default function RoomTable() {
         { field: 'id', header: 'Azonosító', sortable: true },
         { field: 'description', header: 'Leírás', sortable: true, filter: true },
         { field: 'number', header: 'Szoba szám', sortable: true },
-        { 
+        // Módosított oszlop definíció a RoomTable-ban
+        // Módosított oszlop definíció a RoomTable-ban
+        {
             field: 'department.label', 
             header: 'Osztály', 
             sortable: true,
-            body: (row: any) => row.department ? 
-                `${row.department.description}${row.department.costCenter ? ` (${row.department.costCenter})` : ''}` 
-                : '-'
+            body: (row: any) => row.department ? (
+                <Link 
+                href={`/department/${row.department.id}`} 
+                className="text-primary hover:underline cursor-pointer"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    router.push(`/department/${row.department.id}`);
+                }}
+                >
+                {`${row.department.description}${row.department.costCenter ? ` (${row.department.costCenter})` : ''}`}
+                </Link>
+            ) : '-'
         },
         { field: 'isActive', header: 'Aktív', sortable: true, body: (row: Room) => row.isActive ? 'Igen' : 'Nem' },
         {
