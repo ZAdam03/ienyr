@@ -1,3 +1,4 @@
+// src\app\item\[id]\timelineQuery.ts
 import { prisma } from '@/lib/prisma';
 
 export default async function ItemHistoryQuery(id: string) {
@@ -13,14 +14,14 @@ export default async function ItemHistoryQuery(id: string) {
         },
         }),
 
-        prisma.moveItem.findMany({
-        where: { itemId },
-        include: {
-            move: true,
-            moveToRoom: { include: { floor: { include: { building: { include: { site: true } } } } } },
-            moveToCabinet: { include: { room: true } },
-            finishedBy: true,
-        },
+        prisma.move.findMany({ // JAVÍTVA: moveItem -> move
+            where: { itemId },
+            include: {
+                createdBy: true,
+                closedBy: true,
+                moveToRoom: { include: { floor: { include: { building: { include: { site: true } } } } } },
+                moveFromRoom: { include: { floor: { include: { building: { include: { site: true } } } } } },
+            },
         }),
 
         prisma.toolbookItem.findMany({
@@ -53,12 +54,12 @@ export default async function ItemHistoryQuery(id: string) {
         },
         }),
 
-        prisma.scrappageItem.findMany({
-        where: { itemId },
-        include: {
-            scrappage: true,
-            finishedBy: true,
-        },
+        prisma.scrappage.findMany({ // JAVÍTVA: scrappageItem -> scrappage
+            where: { itemId },
+            include: {
+                createdBy: true,
+                closedBy: true,
+            },
         }),
     ]);
 
@@ -82,16 +83,24 @@ export default async function ItemHistoryQuery(id: string) {
         });
     }
 
-    // 2. Mozgatások
+    // 2. Mozgatások - JAVÍTVA
     for (const move of moves) {
-        const location = move.isStored
-        ? `Szekrény: ${move.moveToCabinet?.description ?? '-'}`
-        : `Helyiség: ${move.moveToRoom?.description ?? '-'}`;
+        const fromLocation = move.moveFromRoom?.description ?? 'Toolbook';
+        const toLocation = move.moveToRoom?.description ?? 'Toolbook';
+        
         events.push({
-        status: 'Mozgatás',
-        date: move.finishedAt?.toISOString() ?? '',
-        details: `Mozgató: ${move.finishedBy?.name ?? 'ismeretlen'}, ${location}`,
+            status: move.isFinished ? 'Mozgatás befejezve' : 'Mozgatás elkezdve',
+            date: move.createdAt.toISOString(),
+            details: `Mozgató: ${move.createdBy?.name ?? 'ismeretlen'}, ${fromLocation} → ${toLocation}`,
         });
+
+        if (move.closedAt && move.closedBy) {
+            events.push({
+                status: 'Mozgatás lezárva',
+                date: move.closedAt.toISOString(),
+                details: `Lezárta: ${move.closedBy.name}`,
+            });
+        }
     }
 
     // 3. Toolbook
@@ -130,15 +139,22 @@ export default async function ItemHistoryQuery(id: string) {
         });
     }
 
-    // 7. Selejtezés
-    for (const scr of scrappage) {
+    // 7. Selejtezés - JAVÍTVA
+    for (const scrap of scrappage) {
         events.push({
-        status: 'Selejtezés',
-        date: scr.finishedAt?.toISOString() ?? '',
-        details: `Selejtező: ${scr.finishedBy?.name ?? 'ismeretlen'} – ${scr.scrappage.description}`,
+            status: scrap.isFinished ? 'Selejtezés befejezve' : 'Selejtezés elkezdve',
+            date: scrap.createdAt.toISOString(),
+            details: `Kezdte: ${scrap.createdBy.name} – ${scrap.description ?? 'Selejtezés'}`,
         });
-    }
 
+        if (scrap.closedAt && scrap.closedBy) {
+            events.push({
+                status: 'Selejtezés lezárva',
+                date: scrap.closedAt.toISOString(),
+                details: `Lezárta: ${scrap.closedBy.name}`,
+            });
+        }
+    }
     // Időrend szerint
         events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     
