@@ -53,16 +53,14 @@ model User {
   modifiedCarts Cart[] @relation("cartModifiedBy")
   createdViews View[] @relation("viewCreatedBy")
   modifiedViews View[] @relation("viewModifiedBy")
-  createdScrappages Scrappage[]
-  closedScrappages Scrappage[] @relation("ScrappageClosedBy")
-  finishedScrappageItems ScrappageItem[]
+  createdScrappages Scrappage[] @relation("ScrappageCreatedBy")
+  finishedScrappageItems Scrappage[] @relation("ScrappageClosedBy")
   createdInventory Inventory[]
   createdInventoryItems InventoryItem[]
   createdInventoryIssues InventoryIssue[]
   closedInventory Inventory[] @relation("InventoryClosedBy")
-  createdMoves Move[]
-  closedMoves Move[] @relation("MoveClosedBy")
-  finishedMoveItems MoveItem[]
+  createdMoves Move[] @relation("MoveCreatedBy")
+  finishedMoveItems Move[] @relation("MoveClosedBy")
   messages Message[]
   modifiedModels ModelMetaData[] @relation("modelModifiedBy")
   modifiedCompanies Company[]
@@ -159,9 +157,9 @@ model Item {
   ParentItem   StructureMapping[] @relation("structureMappingChild")
   ChildItems   StructureMapping[] @relation("structureMappingParent")
   carts        CartItem[]
-  scrappages   ScrappageItem[]
+  scrappages   Scrappage[]
   inventories  InventoryItem[]
-  moves        MoveItem[]
+  moves        Move[]
 }
 
 model ItemMetaData {
@@ -340,7 +338,10 @@ model Room {
   lastModifiedById String?
   lastModifiedBy   User? @relation(fields: [lastModifiedById], references: [id])
   cabinets         Cabinet[]
-  moveToRoomItems  MoveItem[]
+  movedToRoomItems Move[] @relation("MoveToRoom")
+  movedFromRoomItems Move[] @relation("MoveFromRoom")
+  movedToToolbookItems Move[] @relation("MoveToToolbook")
+  movedFromToolbookItems Move[] @relation("MoveFromToolbook")
   items            ItemPlace[] // ide kerülnek az eszközök, amik ebben a helyiségben vannak
 }
 model Cabinet {
@@ -354,7 +355,6 @@ model Cabinet {
   lastModifiedAt     DateTime? @default(now())
   lastModifiedById   String?
   lastModifiedBy     User? @relation(fields: [lastModifiedById], references: [id])
-  moveToCabinetItems MoveItem[]
   items              ItemPlace[] // ide kerülnek az eszközök, amik ebben a szekrényben vannak
 }
 model Department {
@@ -382,27 +382,16 @@ model FloorBlueprint {
 // - selejtezés
 model Scrappage {
   id           String   @id @default(uuid())
-  description  String
-  isActive     Boolean  @default(true)
+  itemId       String
+  item         Item     @relation(fields: [itemId], references: [id])
+  description  String?
+  isFinished   Boolean  @default(false)
   createdAt    DateTime @default(now())
   createdById  String
-  createdBy    User     @relation(fields: [createdById], references: [id])
+  createdBy    User     @relation("ScrappageCreatedBy", fields: [createdById], references: [id])
   closedAt     DateTime?
   closedById   String?
   closedBy     User?    @relation("ScrappageClosedBy", fields: [closedById], references: [id])
-  items        ScrappageItem[]
-}
-
-model ScrappageItem {
-  id           String   @id @default(uuid())
-  scrappageId  String
-  scrappage    Scrappage @relation(fields: [scrappageId], references: [id])
-  itemId       String
-  item         Item     @relation(fields: [itemId], references: [id])
-  isFinished   Boolean  @default(false)
-  finishedAt    DateTime?
-  finishedById  String?
-  finishedBy    User?    @relation(fields: [finishedById], references: [id])
 }
 
 // - leltározás
@@ -444,35 +433,27 @@ model InventoryIssue {
   createdBy    User     @relation(fields: [createdById], references: [id])
 }
 
-// - selejtezés
+// - mozgatás
 model Move {
-  id           String   @id @default(uuid())
-  description  String?
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  createdById  String
-  createdBy    User     @relation(fields: [createdById], references: [id])
-  closedAt     DateTime?
-  closedById   String?
-  closedBy     User?    @relation("MoveClosedBy", fields: [closedById], references: [id])
-  items        MoveItem[]
-}
-
-model MoveItem {
-  id              String   @id @default(uuid())
-  moveId          String
-  move            Move @relation(fields: [moveId], references: [id])
-  itemId          String
-  item            Item     @relation(fields: [itemId], references: [id])
-  isStored        Boolean
-  moveToRoomId    String?
-  moveToRoom      Room?    @relation(fields: [moveToRoomId], references: [id])
-  moveToCabinetId String?
-  moveToCabinet   Cabinet? @relation(fields: [moveToCabinetId], references: [id])
-  isFinished      Boolean  @default(false)
-  finishedAt       DateTime?
-  finishedById     String?
-  finishedBy       User?    @relation(fields: [finishedById], references: [id])
+  id                  String   @id @default(uuid())
+  itemId              String
+  item                Item     @relation(fields: [itemId], references: [id])
+  moveFromRoomId      String?
+  moveFromRoom        Room?    @relation("MoveFromRoom", fields: [moveFromRoomId], references: [id])
+  moveToRoomId        String?
+  moveToRoom          Room?    @relation("MoveToRoom", fields: [moveToRoomId], references: [id])
+  moveFromToolbookId  String?
+  moveFromToolbook    Room?    @relation("MoveFromToolbook", fields: [moveFromToolbookId], references: [id])
+  moveToToolbookId    String?
+  moveToToolbook      Room?    @relation("MoveToToolbook", fields: [moveToToolbookId], references: [id])
+  description         String?
+  isFinished          Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  createdById         String
+  createdBy           User     @relation("MoveCreatedBy", fields: [createdById], references: [id])
+  closedAt            DateTime?
+  closedById          String?
+  closedBy            User?    @relation("MoveClosedBy", fields: [closedById], references: [id])
 }
 
 model Message {
