@@ -1,11 +1,13 @@
+// src/app/item/[id]/page.tsx
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import ItemDetail from './ItemDetail';
 import { Button } from 'primereact/button';
-import React, { use } from 'react'; 
-import { Timeline } from 'primereact/timeline';
+import React from 'react'; 
 import ItemHistoryTimeline from './timeline';
 import timelineQuery from './timelineQuery';
+import MoveDialog from './MoveDialog';
+import ScrapDialog from './ScrapDialog';
 
 interface Props {
     params: { id: string };
@@ -13,6 +15,7 @@ interface Props {
 
 export default async function ItemPage({ params }: Props) {
     const { id } = await params;
+    
     const item = await prisma.item.findUnique({
         where: { id },
         select: {
@@ -35,6 +38,7 @@ export default async function ItemPage({ params }: Props) {
                 select: {
                     toolbook: {
                         select: {
+                            id: true,
                             user: {
                                 select: {
                                     name: true,
@@ -48,8 +52,18 @@ export default async function ItemPage({ params }: Props) {
                 where: { isActive: true },
                 select: {
                     isStored: true,
-                    room: { select: { description: true } },
-                    cabinet: { select: { description: true } },
+                    room: { 
+                        select: { 
+                            id: true,
+                            description: true 
+                        } 
+                    },
+                    cabinet: { 
+                        select: { 
+                            id: true,
+                            description: true 
+                        } 
+                    },
                 },
             },
         },
@@ -59,10 +73,10 @@ export default async function ItemPage({ params }: Props) {
         return notFound();
     }
 
-    const toolbookName = item.toolbookItem[0]?.toolbook.user.name ?? '';
+    const toolbook = item.toolbookItem[0]?.toolbook;
+    const toolbookName = toolbook?.user.name ?? '';
     const place = item.place.find(p => p.isStored) || item.place[0];
-    const roomOrCabinet =
-        place?.room?.description ?? place?.cabinet?.description ?? '';
+    const roomOrCabinet = place?.room?.description ?? place?.cabinet?.description ?? '';
 
     const events = await timelineQuery(id);
 
@@ -105,6 +119,12 @@ export default async function ItemPage({ params }: Props) {
                 <div className='card gap-2 flex'>
                     <Button>Szerkesztés</Button>
                     <Button>Kosárba</Button>
+                    <MoveDialog 
+                        itemId={item.id}
+                        currentRoom={place?.room}
+                        currentToolbook={toolbook}
+                    />
+                    <ScrapDialog itemId={item.id} />
                 </div>
 
                 <div className="card">
