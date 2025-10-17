@@ -44,75 +44,75 @@ export async function POST(req: NextRequest) {
         }
 
         // Tranzakcióban végrehajtjuk a műveleteket
-        const result = await prisma.$transaction(async (tx) => {
-            // 1. Mozgatás létrehozása
-            const move = await tx.move.create({
-                data: {
-                    itemId,
-                    moveFromRoomId,
-                    moveFromToolbookId,
-                    moveToRoomId,
-                    moveToToolbookId,
-                    description,
-                    createdById: userId
-                }
-            });
+const result = await prisma.$transaction(async (tx) => {
+    // 1. Mozgatás létrehozása
+    const move = await tx.move.create({
+        data: {
+            itemId,
+            moveFromRoomId,
+            moveFromToolbookId,
+            moveToRoomId,
+            moveToToolbookId,
+            description,
+            createdById: userId
+        }
+    });
 
-            // 2. Ha szobába mozgatunk, kezeljük az ItemPlace-t
-            if (moveToRoomId) {
-                // Régi aktív helyek inaktiválása
-                await tx.itemPlace.updateMany({
-                    where: {
-                        itemId,
-                        isActive: true
-                    },
-                    data: {
-                        isActive: false,
-                        deactivatedAt: new Date(),
-                        deactivatedById: userId
-                    }
-                });
-
-                // Új hely létrehozása
-                await tx.itemPlace.create({
-                    data: {
-                        itemId,
-                        roomId: moveToRoomId,
-                        isStored: true,
-                        isActive: true,
-                        createdById: userId
-                    }
-                });
+    // 2. Hely frissítése
+    if (moveToRoomId) {
+        // Régi aktív helyek inaktiválása
+        await tx.itemPlace.updateMany({
+            where: {
+                itemId,
+                isActive: true
+            },
+            data: {
+                isActive: false,
+                deactivatedAt: new Date(),
+                deactivatedById: userId
             }
-
-            // 3. Ha toolbookba mozgatunk, kezeljük a ToolbookItem-et
-            if (moveToToolbookId) {
-                // Régi aktív toolbook item inaktiválása
-                await tx.toolbookItem.updateMany({
-                    where: {
-                        itemId,
-                        isActive: true
-                    },
-                    data: {
-                        isActive: false,
-                        deactivedAt: new Date(),
-                        deactivedById: userId
-                    }
-                });
-
-                // Új toolbook item létrehozása
-                await tx.toolbookItem.create({
-                    data: {
-                        toolbookId: moveToToolbookId,
-                        itemId,
-                        isActive: true,
-                        createdById: userId
-                    }
-                });
-            }
-
-            return move;
         });
+
+        // Új hely létrehozása
+        await tx.itemPlace.create({
+            data: {
+                itemId,
+                roomId: moveToRoomId,
+                isStored: true,
+                isActive: true,
+                createdById: userId
+            }
+        });
+    }
+
+    // 3. Toolbook frissítése
+    if (moveToToolbookId) {
+        // Régi aktív toolbook item inaktiválása
+        await tx.toolbookItem.updateMany({
+            where: {
+                itemId,
+                isActive: true
+            },
+            data: {
+                isActive: false,
+                deactivedAt: new Date(),
+                deactivedById: userId
+            }
+        });
+
+        // Új toolbook item létrehozása
+        await tx.toolbookItem.create({
+            data: {
+                toolbookId: moveToToolbookId,
+                itemId,
+                isActive: true,
+                createdById: userId
+            }
+        });
+    }
+
+    return move;
+});
 
         return NextResponse.json(result, { status: 201 });
 

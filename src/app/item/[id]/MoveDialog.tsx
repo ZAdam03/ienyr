@@ -1,12 +1,16 @@
 // src/app/item/[id]/MoveDialog.tsx
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
+import { Checkbox } from 'primereact/checkbox';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import { Card } from 'primereact/card';
 
 interface MoveDialogProps {
     itemId: string;
@@ -20,7 +24,7 @@ interface MoveDialogProps {
             name: string;
         };
     } | null;
-    structureItems?: string[]; // Új prop
+    structureItems?: string[];
 }
 
 interface Room {
@@ -42,11 +46,45 @@ interface Toolbook {
     };
 }
 
-export default function MoveDialog({ itemId, currentRoom, currentToolbook }: MoveDialogProps) {
+interface StructureItem {
+    id: string;
+    description: string;
+    eid: string | null;
+    model: {
+        brand: string;
+        model: string;
+    };
+    relationType: 'parent' | 'child';
+    structureMappingId: string;
+    place: Array<{
+        room?: {
+            id?: string;
+            description: string;
+        };
+        cabinet?: {
+            id?: string;
+            description: string;
+        };
+    }>;
+    toolbookItem: Array<{
+        toolbook: {
+            id?: string;
+            user: {
+                name: string;
+            };
+        };
+    }>;
+}
+
+export default function MoveDialog({ itemId, currentRoom, currentToolbook, structureItems }: MoveDialogProps) {
     const [visible, setVisible] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [loadingStructure, setLoadingStructure] = useState(false);
     const [rooms, setRooms] = useState<Room[]>([]);
     const [toolbooks, setToolbooks] = useState<Toolbook[]>([]);
+    const [structureData, setStructureData] = useState<StructureItem[]>([]);
+    const [includeStructure, setIncludeStructure] = useState(true);
+    const [selectedStructureItems, setSelectedStructureItems] = useState<string[]>([]);
     const [formData, setFormData] = useState({
         moveToRoomId: '',
         moveToToolbookId: '',
@@ -56,7 +94,7 @@ export default function MoveDialog({ itemId, currentRoom, currentToolbook }: Mov
 
     const loadData = async () => {
         try {
-            // Szobák betöltése - most már a megfelelő include-okkal
+            // Szobák betöltése
             const roomsResponse = await fetch('/api/room?include=full');
             if (!roomsResponse.ok) {
                 throw new Error(`Szobák betöltése sikertelen: ${roomsResponse.status}`);
@@ -64,16 +102,19 @@ export default function MoveDialog({ itemId, currentRoom, currentToolbook }: Mov
             const roomsData = await roomsResponse.json();
             setRooms(roomsData);
 
-            // Toolbookok betöltése - most már a megfelelő API-val
+            // Toolbookok betöltése
             const toolbooksResponse = await fetch('/api/toolbook?active=true');
             if (!toolbooksResponse.ok) {
-                // Ha nincs toolbook API, üres listát használunk
                 console.warn('Toolbook API nem elérhető');
                 setToolbooks([]);
             } else {
                 const toolbooksData = await toolbooksResponse.json();
                 setToolbooks(toolbooksData);
             }
+
+            // Struktúra adatok betöltése
+            await loadStructureData();
+
         } catch (error) {
             console.error('Error loading data:', error);
             toast.current?.show({
@@ -82,6 +123,33 @@ export default function MoveDialog({ itemId, currentRoom, currentToolbook }: Mov
                 detail: 'Nem sikerült betölteni az adatokat',
                 life: 3000
             });
+        }
+    };
+
+    const loadStructureData = async () => {
+        if (!structureItems || structureItems.length === 0) return;
+        
+        setLoadingStructure(true);
+        try {
+            const response = await fetch(`/api/structure-mapping/${itemId}`);
+            if (!response.ok) {
+                throw new Error('Structure data load failed');
+            }
+            const data = await response.json();
+            setStructureData(data.structureItems || []);
+            
+            // Alapértelmezetten kijelöljük az összes struktúra elemet
+            setSelectedStructureItems(data.structureItems.map((item: StructureItem) => item.id));
+        } catch (error) {
+            console.error('Error loading structure data:', error);
+            toast.current?.show({
+                severity: 'warn',
+                summary: 'Figyelmeztetés',
+                detail: 'Nem sikerült betölteni a struktúra adatokat',
+                life: 3000
+            });
+        } finally {
+            setLoadingStructure(false);
         }
     };
 
@@ -97,6 +165,8 @@ export default function MoveDialog({ itemId, currentRoom, currentToolbook }: Mov
             moveToToolbookId: '',
             description: ''
         });
+        setSelectedStructureItems([]);
+        setIncludeStructure(true);
     };
 
     const handleSubmit = async () => {
@@ -112,7 +182,8 @@ export default function MoveDialog({ itemId, currentRoom, currentToolbook }: Mov
 
         setLoading(true);
         try {
-            const response = await fetch('/api/move', {
+            // Elsőként a fő eszköz mozgatása
+            const mainMoveResponse = await fetch('/api/move', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -127,22 +198,28 @@ export default function MoveDialog({ itemId, currentRoom, currentToolbook }: Mov
                 }),
             });
 
-            if (response.ok) {
-                toast.current?.show({
-                    severity: 'success',
-                    summary: 'Siker',
-                    detail: 'Mozgatás sikeresen rögzítve',
-                    life: 3000
-                });
-                closeDialog();
-                // Oldal frissítése
-                window.location.reload();
-            } else {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Mozgatás sikertelen');
+            if (!mainMoveResponse.ok) {
+                const errorData = await mainMoveResponse.json();
+                throw new Error(errorData.error || 'Fő eszköz mozgatása sikertelen');
             }
+
+            // Struktúra elemek mozgatása, ha be van kapcsolva
+            if (includeStructure && selectedStructureItems.length > 0) {
+                await moveStructureItems();
+            }
+
+            toast.current?.show({
+                severity: 'success',
+                summary: 'Siker',
+                detail: `Mozgatás sikeresen rögzítve${includeStructure && selectedStructureItems.length > 0 ? ` (${selectedStructureItems.length + 1} eszköz)` : ''}`,
+                life: 3000
+            });
+            
+            closeDialog();
+            window.location.reload();
+
         } catch (error) {
-            console.error('Error moving item:', error);
+            console.error('Error moving items:', error);
             toast.current?.show({
                 severity: 'error',
                 summary: 'Hiba',
@@ -154,16 +231,105 @@ export default function MoveDialog({ itemId, currentRoom, currentToolbook }: Mov
         }
     };
 
-    const roomOptionTemplate = (option: Room) => {
-        // Biztonságos hozzáférés a nested objektumokhoz
-        const siteDescription = option.floor?.building?.site?.description || 'Ismeretlen telephely';
+    const moveStructureItems = async () => {
+        const movePromises = selectedStructureItems.map(async (structureItemId) => {
+            const structureItem = structureData.find(item => item.id === structureItemId);
+            if (!structureItem) return;
+
+            // Aktuális hely és toolbook lekérése a struktúra elemhez
+            const currentPlace = structureItem.place[0];
+            const currentToolbook = structureItem.toolbookItem[0]?.toolbook;
+
+            return fetch('/api/move', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    itemId: structureItemId,
+                    moveFromRoomId: currentPlace?.room?.id || null,
+                    moveFromToolbookId: currentToolbook?.id || null,
+                    moveToRoomId: formData.moveToRoomId || null,
+                    moveToToolbookId: formData.moveToToolbookId || null,
+                    description: `${formData.description || ''} [Struktúra: ${structureItem.relationType === 'child' ? 'gyermek' : 'szülő'}]`.trim()
+                }),
+            });
+        });
+
+        const results = await Promise.allSettled(movePromises);
+        
+        // Hibák ellenőrzése
+        const errors = results.filter(result => result.status === 'rejected');
+        if (errors.length > 0) {
+            console.error('Some structure items failed to move:', errors);
+            throw new Error(`${errors.length} struktúra elem mozgatása sikertelen`);
+        }
+    };
+
+    const onStructureSelectionChange = (e: any) => {
+        setSelectedStructureItems(e.value);
+    };
+
+    const structureSelectionHeader = (
+        <div className="flex align-items-center">
+            <Checkbox
+                checked={selectedStructureItems.length === structureData.length}
+                onChange={(e) => {
+                    if (e.checked) {
+                        setSelectedStructureItems(structureData.map(item => item.id));
+                    } else {
+                        setSelectedStructureItems([]);
+                    }
+                }}
+            />
+            <span className="ml-2">Összes kijelölése</span>
+        </div>
+    );
+
+    const structureSelectionBody = (rowData: StructureItem) => (
+        <Checkbox
+            checked={selectedStructureItems.includes(rowData.id)}
+            onChange={(e) => {
+                let selected = [...selectedStructureItems];
+                if (e.checked) {
+                    selected.push(rowData.id);
+                } else {
+                    selected = selected.filter(id => id !== rowData.id);
+                }
+                setSelectedStructureItems(selected);
+            }}
+        />
+    );
+
+    const structureItemBody = (rowData: StructureItem) => (
+        <div>
+            <div className="font-bold">{rowData.description}</div>
+            <small className="text-gray-500">
+                {rowData.model.brand} {rowData.model.model} | 
+                {rowData.relationType === 'child' ? ' Gyermek' : ' Szülő'} | 
+                EID: {rowData.eid || 'N/A'}
+            </small>
+        </div>
+    );
+
+    const structureLocationBody = (rowData: StructureItem) => {
+        const place = rowData.place[0];
+        const toolbook = rowData.toolbookItem[0]?.toolbook.user.name;
         
         return (
             <div>
+                <div>{place?.room?.description || place?.cabinet?.description || 'Nincs hely'}</div>
+                {toolbook && <small className="text-gray-500">{toolbook}</small>}
+            </div>
+        );
+    };
+
+    const roomOptionTemplate = (option: Room) => {
+        const siteDescription = option.floor?.building?.site?.description || 'Ismeretlen telephely';
+        return (
+            <div>
                 <div>{option.description}</div>
-                <small className="text-gray-500">
-                    {siteDescription}
-                </small>
+                <small className="text-gray-500">{siteDescription}</small>
             </div>
         );
     };
@@ -175,16 +341,6 @@ export default function MoveDialog({ itemId, currentRoom, currentToolbook }: Mov
                 <small className="text-gray-500">Toolbook ID: {option.id}</small>
             </div>
         );
-    };
-
-    const selectedRoomTemplate = (option: Room) => {
-        if (!option) return 'Válassz szobát';
-        return option.description;
-    };
-
-    const selectedToolbookTemplate = (option: Toolbook) => {
-        if (!option) return 'Válassz toolbookot';
-        return `${option.user.name} toolbookja`;
     };
 
     return (
@@ -200,7 +356,7 @@ export default function MoveDialog({ itemId, currentRoom, currentToolbook }: Mov
             <Dialog 
                 header="Eszköz mozgatása" 
                 visible={visible} 
-                style={{ width: '50vw' }} 
+                style={{ width: '70vw' }} 
                 onHide={closeDialog}
                 footer={
                     <div>
@@ -211,7 +367,7 @@ export default function MoveDialog({ itemId, currentRoom, currentToolbook }: Mov
                             className="p-button-text"
                         />
                         <Button 
-                            label="Mozgatás" 
+                            label={`Mozgatás (${includeStructure && selectedStructureItems.length > 0 ? selectedStructureItems.length + 1 : 1} eszköz)`}
                             icon="pi pi-check" 
                             onClick={handleSubmit}
                             loading={loading}
@@ -241,7 +397,6 @@ export default function MoveDialog({ itemId, currentRoom, currentToolbook }: Mov
                             optionValue="id"
                             placeholder="Válassz szobát"
                             itemTemplate={roomOptionTemplate}
-                            valueTemplate={selectedRoomTemplate}
                             filter
                             showClear
                             className="w-full"
@@ -261,7 +416,6 @@ export default function MoveDialog({ itemId, currentRoom, currentToolbook }: Mov
                             optionValue="id"
                             placeholder="Válassz toolbookot"
                             itemTemplate={toolbookOptionTemplate}
-                            valueTemplate={selectedToolbookTemplate}
                             filter
                             showClear
                             className="w-full"
@@ -284,6 +438,50 @@ export default function MoveDialog({ itemId, currentRoom, currentToolbook }: Mov
                             className="w-full"
                         />
                     </div>
+
+                    {structureData.length > 0 && (
+                        <div className="col-12">
+                            <Card>
+                                <div className="flex align-items-center mb-3">
+                                    <Checkbox
+                                        inputId="includeStructure"
+                                        checked={includeStructure}
+                                        onChange={(e) => setIncludeStructure(!!e.checked)}
+                                    />
+                                    <label htmlFor="includeStructure" className="ml-2 font-bold">
+                                        Struktúra elemek mozgatása ({structureData.length} eszköz)
+                                    </label>
+                                </div>
+
+                                {includeStructure && (
+                                    <DataTable
+                                        value={structureData}
+                                        //@ts-ignore
+                                        selection={selectedStructureItems}
+                                        onSelectionChange={onStructureSelectionChange}
+                                        dataKey="id"
+                                        selectionMode="multiple"
+                                        className="p-datatable-sm"
+                                        scrollHeight="200px"
+                                        loading={loadingStructure}
+                                    >
+                                        <Column 
+                                            selectionMode="multiple" 
+                                            header={structureSelectionHeader}
+                                            body={structureSelectionBody}
+                                            style={{ width: '3rem' }}
+                                        />
+                                        <Column header="Eszköz" body={structureItemBody} />
+                                        <Column header="Kapcsolat" field="relationType" 
+                                            body={(rowData) => rowData.relationType === 'child' ? 'Gyermek' : 'Szülő'} 
+                                            style={{ width: '100px' }}
+                                        />
+                                        <Column header="Jelenlegi hely" body={structureLocationBody} />
+                                    </DataTable>
+                                )}
+                            </Card>
+                        </div>
+                    )}
 
                     <div className="col-12">
                         <small className="text-gray-500">* Legalább egy mezőt ki kell tölteni</small>
