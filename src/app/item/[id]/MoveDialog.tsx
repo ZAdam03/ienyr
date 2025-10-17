@@ -211,8 +211,9 @@ export default function MoveDialog({ itemId, currentRoom, currentToolbook, struc
             toast.current?.show({
                 severity: 'success',
                 summary: 'Siker',
-                detail: `Mozgatás sikeresen rögzítve${includeStructure && selectedStructureItems.length > 0 ? ` (${selectedStructureItems.length + 1} eszköz)` : ''}`,
-                life: 3000
+                // MÓDOSÍTOTT ÜZENET - hangsúlyozzuk, hogy ez csak kérés
+                detail: `Mozgatási kérés sikeresen rögzítve${includeStructure && selectedStructureItems.length > 0 ? ` (${selectedStructureItems.length + 1} eszköz)` : ''}. A kérés jóváhagyásra vár.`,
+                life: 5000 // Hosszabb idő, hogy elolvashassa
             });
             
             closeDialog();

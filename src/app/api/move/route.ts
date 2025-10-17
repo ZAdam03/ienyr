@@ -1,10 +1,51 @@
-// src/app/api/move/route.ts (javított verzió)
+// src/app/api/move/route.ts (JAVÍTOTT VERZIÓ)
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
 const prisma = new PrismaClient();
+
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const isFinished = searchParams.get('isFinished');
+    
+    const where: any = {};
+    
+    if (isFinished !== null) {
+      where.isFinished = isFinished === 'true';
+    }
+    
+    const moves = await prisma.move.findMany({
+      where,
+      include: {
+        item: {
+          include: {
+            model: true
+          }
+        },
+        moveFromRoom: true,
+        moveToRoom: true,
+        moveFromToolbook: true,
+        moveToToolbook: true,
+        createdBy: {
+          select: {
+            name: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+    
+    return NextResponse.json(moves);
+  } catch (error) {
+    console.error('GET /api/move error:', error);
+    return NextResponse.json({ error: 'Lekérési hiba' }, { status: 500 });
+  }
+}
 
 export async function POST(req: NextRequest) {
     try {
@@ -43,78 +84,21 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Az eszköz nem található' }, { status: 404 });
         }
 
-        // Tranzakcióban végrehajtjuk a műveleteket
-const result = await prisma.$transaction(async (tx) => {
-    // 1. Mozgatás létrehozása
-    const move = await tx.move.create({
-        data: {
-            itemId,
-            moveFromRoomId,
-            moveFromToolbookId,
-            moveToRoomId,
-            moveToToolbookId,
-            description,
-            createdById: userId
-        }
-    });
-
-    // 2. Hely frissítése
-    if (moveToRoomId) {
-        // Régi aktív helyek inaktiválása
-        await tx.itemPlace.updateMany({
-            where: {
-                itemId,
-                isActive: true
-            },
+        // CSAK A MOZGATÁSI KÉRELEM LÉTREHOZÁSA - NEM változtatunk semmit az ItemPlace-ben vagy ToolbookItem-ben!
+        const move = await prisma.move.create({
             data: {
-                isActive: false,
-                deactivatedAt: new Date(),
-                deactivatedById: userId
+                itemId,
+                moveFromRoomId,
+                moveFromToolbookId,
+                moveToRoomId,
+                moveToToolbookId,
+                description,
+                createdById: userId,
+                isFinished: false // Alapértelmezetten false!
             }
         });
 
-        // Új hely létrehozása
-        await tx.itemPlace.create({
-            data: {
-                itemId,
-                roomId: moveToRoomId,
-                isStored: true,
-                isActive: true,
-                createdById: userId
-            }
-        });
-    }
-
-    // 3. Toolbook frissítése
-    if (moveToToolbookId) {
-        // Régi aktív toolbook item inaktiválása
-        await tx.toolbookItem.updateMany({
-            where: {
-                itemId,
-                isActive: true
-            },
-            data: {
-                isActive: false,
-                deactivedAt: new Date(),
-                deactivedById: userId
-            }
-        });
-
-        // Új toolbook item létrehozása
-        await tx.toolbookItem.create({
-            data: {
-                toolbookId: moveToToolbookId,
-                itemId,
-                isActive: true,
-                createdById: userId
-            }
-        });
-    }
-
-    return move;
-});
-
-        return NextResponse.json(result, { status: 201 });
+        return NextResponse.json(move, { status: 201 });
 
     } catch (error) {
         console.error('POST /api/move error:', error);
