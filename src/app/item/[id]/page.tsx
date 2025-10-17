@@ -1,4 +1,4 @@
-// src/app/item/[id]/page.tsx
+// src/app/item/[id]/page.tsx (részlet)
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import ItemDetail from './ItemDetail';
@@ -8,6 +8,8 @@ import ItemHistoryTimeline from './timeline';
 import timelineQuery from './timelineQuery';
 import MoveDialog from './MoveDialog';
 import ScrapDialog from './ScrapDialog';
+import StructureDialog from './StructureDialog';
+import StructureTable from './StructureTable';
 
 interface Props {
     params: { id: string };
@@ -66,6 +68,27 @@ export default async function ItemPage({ params }: Props) {
                     },
                 },
             },
+            // Struktúra adatok
+            ParentItem: {
+                where: { isActive: true },
+                include: {
+                    parentItem: {
+                        include: {
+                            model: true
+                        }
+                    }
+                }
+            },
+            ChildItems: {
+                where: { isActive: true },
+                include: {
+                    childItem: {
+                        include: {
+                            model: true
+                        }
+                    }
+                }
+            },
         },
     });
 
@@ -123,14 +146,37 @@ export default async function ItemPage({ params }: Props) {
                         itemId={item.id}
                         currentRoom={place?.room}
                         currentToolbook={toolbook}
+                        structureItems={[
+                            item.id,
+                            ...item.ChildItems.map(sm => sm.childItem.id),
+                            ...item.ParentItem.map(sm => sm.parentItem.id)
+                        ]}
                     />
-                    <ScrapDialog itemId={item.id} />
+                    <ScrapDialog 
+                        itemId={item.id}
+                        structureItems={[
+                            item.id,
+                            ...item.ChildItems.map(sm => sm.childItem.id),
+                            ...item.ParentItem.map(sm => sm.parentItem.id)
+                        ]}
+                    />
+                    <StructureDialog itemId={item.id} />
                 </div>
 
                 <div className="card">
                     <h2>Térkép</h2>
                     {/* térkép komponens */}
                 </div>
+
+                {/* Struktúra táblázat */}
+                <div className="col-12">
+                    <StructureTable 
+                        parentItems={item.ParentItem}
+                        childItems={item.ChildItems}
+                        currentItemId={item.id}
+                    />
+                </div>
+
                 <h2>Előzmények</h2>
                 <div className="card">
                     <ItemHistoryTimeline events={events} />

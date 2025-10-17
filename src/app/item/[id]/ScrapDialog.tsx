@@ -9,6 +9,7 @@ import { Toast } from 'primereact/toast';
 
 interface ScrapDialogProps {
     itemId: string;
+    structureItems?: string[]; // Új prop
 }
 
 export default function ScrapDialog({ itemId }: ScrapDialogProps) {

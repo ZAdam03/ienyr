@@ -20,6 +20,7 @@ interface MoveDialogProps {
             name: string;
         };
     } | null;
+    structureItems?: string[]; // Új prop
 }
 
 interface Room {
