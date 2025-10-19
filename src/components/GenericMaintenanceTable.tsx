@@ -1,4 +1,4 @@
-// src/components/GenericTable.tsx
+// src/components/GenericMaintenanceTable.tsx
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
