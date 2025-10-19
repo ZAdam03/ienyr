@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { Permission } from '@/lib/permissions';
+import { requirePermission } from '@/lib/permission-middleware';
 
 const prisma = new PrismaClient();
 
@@ -22,6 +23,9 @@ export async function PUT(
     }
 
     try {
+        // Permission check - csak admin vagy role management joggal
+        const permissionError = await requirePermission(request, 'manage_roles');
+        if (permissionError) return permissionError;
         // Tranzakcióban frissítjük a permissions-öket
         const result = await prisma.$transaction(async (tx) => {
             // Régi permissions törlése
@@ -52,5 +56,47 @@ export async function PUT(
     } catch (error) {
         console.error('PUT /api/role/[id]/permissions error:', error);
         return NextResponse.json({ error: 'Permission frissítési hiba' }, { status: 500 });
+    }
+}
+
+export async function GET(
+        request: NextRequest,
+        { params }: { params: { id: string } }
+    ) {
+    try {
+        // Permission check - csak admin vagy role management joggal
+        const permissionError = await requirePermission(request, 'manage_roles');
+        if (permissionError) return permissionError;
+
+        const { id } = await params;
+
+        // Role és permissions lekérése
+        const role = await prisma.role.findUnique({
+        where: { id },
+        include: {
+            permissions: {
+            select: {
+                permissionName: true
+            }
+            }
+        }
+        });
+
+        if (!role) {
+        return NextResponse.json({ error: 'Role nem található' }, { status: 404 });
+        }
+
+        // Csak a permission neveket adjuk vissza
+        const permissions = role.permissions.map(p => p.permissionName);
+
+        return NextResponse.json({
+        roleId: role.id,
+        roleName: role.name,
+        permissions
+        });
+
+    } catch (error) {
+        console.error('GET /api/role/[id]/permissions error:', error);
+        return NextResponse.json({ error: 'Lekérési hiba' }, { status: 500 });
     }
 }

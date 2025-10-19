@@ -1,8 +1,9 @@
-// src/lib/auth.ts
+// src/lib/auth.ts (JAVÍTOTT - SESSION REFRESH)
 import { NextAuthOptions, Session } from "next-auth";
 import AzureADProvider from "next-auth/providers/azure-ad";
 import { PrismaClient } from "@prisma/client";
 import { JWT } from "next-auth/jwt";
+import { getUserPermissions } from './permissions';
 
 const prisma = new PrismaClient();
 
@@ -15,7 +16,9 @@ declare module "next-auth" {
       email?: string | null;
       image?: string | null;
       appUserId?: string;
-      azureGroups?: string[]; // Új: Azure group IDs
+      azureGroups?: string[];
+      appGroups?: string[];
+      permissions?: string[];
     };
   }
 }
@@ -23,7 +26,11 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     appUserId?: string;
-    azureGroups?: string[]; // Új: Azure group IDs
+    azureGroups?: string[];
+    appGroups?: string[];
+    permissions?: string[];
+    iat?: number;
+    exp?: number;
   }
 }
 
@@ -33,20 +40,43 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.AZURE_AD_CLIENT_ID!,
       clientSecret: process.env.AZURE_AD_CLIENT_SECRET!,
       tenantId: process.env.AZURE_AD_TENANT_ID!,
-      issuer: `https://login.microsoftonline.com/${process.env.AZURE_AD_TENANT_ID}/v2.0`,
+      
       authorization: {
-        params: {
-          scope: "openid profile email User.Read GroupMember.Read.All", // Group olvasás engedélyezése
+        params: { 
+          scope: "openid profile email offline_access User.Read GroupMember.Read.All",
         },
+      },
+      
+      idToken: true,
+      checks: ["state"],
+      
+      profile(profile, tokens) {
+        console.log('🔐 AZURE PROFILE:', profile);
+        
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.preferred_username || profile.email,
+          groups: profile.groups || [],
+        };
       },
     }),
   ],
+  
+  // JAVÍTOTT: Session stratégia beállítása
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 60, // 30 perc - rövidebb session élettartam
+  },
+  
   callbacks: {
     async signIn({ user, account, profile }) {
-      // Group IDs kinyerése a profile-ból
+      console.log('🚀 SIGN IN - PROFILE:', profile);
+      
       const azureGroups = (profile as any)?.groups || [];
+      console.log('🔐 AZURE GROUPS IN SIGNIN:', azureGroups);
 
-      await prisma.user.upsert({
+      const dbUser = await prisma.user.upsert({
         where: { email: user.email! },
         update: {
           name: user.name!,
@@ -62,45 +92,126 @@ export const authOptions: NextAuthOptions = {
           lastLogin: new Date(),
         },
       });
+
+      console.log('💾 USER UPSERTED:', dbUser.id);
       return true;
     },
 
-    async jwt({ token, user, account, profile }) {
-      // Initial sign in
-      if (user) {
-        token.azureId = user.id;
-      }
-
-      if (user?.email) {
-        const dbUser = await prisma.user.findUnique({
-          where: { email: user.email },
-        });
-
-        if (dbUser) {
-          token.appUserId = dbUser.id;
+    async jwt({ token, user, account, profile, trigger }) {
+      console.log('🔄 JWT CALLBACK - TRIGGER:', trigger);
+      
+      // JAVÍTOTT: Mindig frissítjük a jogosultságokat, ne csak signIn-kor
+      if (trigger === "signIn" || trigger === "signUp" || !token.azureGroups) {
+        console.log('🔄 FRESH JWT UPDATE - PROFILE:', profile);
+        
+        // Initial sign in
+        if (user) {
+          token.azureId = user.id;
         }
-      }
 
-      // Azure Groups hozzáadása a tokenhez
-      if (profile) {
-        token.azureGroups = (profile as any)?.groups || [];
+        if (user?.email) {
+          const dbUser = await prisma.user.findUnique({
+            where: { email: user.email },
+          });
+
+          if (dbUser) {
+            token.appUserId = dbUser.id;
+            console.log('👤 APP USER ID SET:', dbUser.id);
+          }
+        }
+
+        // Azure Groups hozzáadása
+        let azureGroups: string[] = [];
+        
+        if (profile && (profile as any).groups) {
+          azureGroups = (profile as any).groups;
+        } else if (token.groups) {
+          azureGroups = token.groups as string[];
+        } else if (account?.id_token) {
+          try {
+            const payload = JSON.parse(Buffer.from(account.id_token.split('.')[1], 'base64').toString());
+            azureGroups = payload.groups || [];
+          } catch (error) {
+            console.error('Error decoding ID token:', error);
+          }
+        }
+
+        console.log('🔐 AZURE GROUPS FOUND:', azureGroups);
+        token.azureGroups = azureGroups;
+
+        // App Groups lekérése
+        const appGroups = await getAppGroups(azureGroups);
+        token.appGroups = appGroups;
+        console.log('🏷️ APP GROUPS SET:', appGroups);
+
+        // Jogosultságok lekérése
+        const permissions = await getUserPermissions(appGroups);
+        token.permissions = permissions;
+        console.log('📋 PERMISSIONS SET:', permissions);
+      } else {
+        console.log('🔄 USING CACHED JWT DATA');
       }
 
       return token;
     },
 
     async session({ session, token }) {
-      if (token?.appUserId && session.user) {
-        (session.user as any).appUserId = token.appUserId;
-      }
+      console.log('🎫 SESSION CALLBACK - TOKEN DATA:', {
+        hasAzureGroups: !!token.azureGroups?.length,
+        hasAppGroups: !!token.appGroups?.length,
+        hasPermissions: !!token.permissions?.length,
+        appUserId: token.appUserId
+      });
       
-      if (token?.azureGroups && session.user) {
-        (session.user as any).azureGroups = token.azureGroups;
-      }
+      // JAVÍTOTT: Mindig friss értékek másolása
+      session.user.appUserId = token.appUserId;
+      session.user.azureGroups = token.azureGroups || [];
+      session.user.appGroups = token.appGroups || [];
+      session.user.permissions = token.permissions || [];
+
+      console.log('🎫 FINAL SESSION DATA:', {
+        azureGroups: session.user.azureGroups,
+        appGroups: session.user.appGroups,
+        permissions: session.user.permissions,
+        appUserId: session.user.appUserId
+      });
 
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  
   debug: process.env.NODE_ENV === "development",
+  secret: process.env.NEXTAUTH_SECRET,
 };
+
+// App Groups lekérése
+async function getAppGroups(azureGroups: string[]): Promise<string[]> {
+  try {
+    if (!azureGroups || azureGroups.length === 0) {
+      console.log('📭 NO AZURE GROUPS PROVIDED');
+      return [];
+    }
+
+    console.log('🔍 LOOKING FOR APP GROUPS FOR:', azureGroups);
+    
+    const appRoles = await prisma.role.findMany({
+      where: {
+        azureGroupId: { in: azureGroups }
+      },
+      select: {
+        azureGroupId: true,
+        name: true
+      }
+    });
+
+    console.log('🏷️ FOUND APP ROLES:', appRoles);
+    
+    const appGroupIds = appRoles.map(role => role.azureGroupId);
+    console.log('✅ FINAL APP GROUP IDs:', appGroupIds);
+    
+    return appGroupIds;
+  } catch (error) {
+    console.error('❌ Error getting app groups:', error);
+    return [];
+  }
+}

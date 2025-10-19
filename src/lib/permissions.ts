@@ -1,131 +1,163 @@
-// src/lib/permissions.ts
+// src/lib/permissions.ts (JAVÍTOTT)
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+// Alap permission nevek definiálása
 export const PERMISSIONS = {
-  // Admin jogosultságok
+  // Admin jogok
   ADMIN: 'admin',
   
-  // Role kezelés
-  ROLE_VIEW: 'role.view',
-  ROLE_CREATE: 'role.create', 
-  ROLE_EDIT: 'role.edit',
-  ROLE_DELETE: 'role.delete',
+  // Olvasási jogok
+  VIEW_COMPANY: 'view_company',
+  VIEW_SITE: 'view_site',
+  VIEW_BUILDING: 'view_building',
+  VIEW_FLOOR: 'view_floor',
+  VIEW_ROOM: 'view_room',
+  VIEW_CABINET: 'view_cabinet',
+  VIEW_DEPARTMENT: 'view_department',
+  VIEW_ITEM: 'view_item',
+  VIEW_MODEL: 'view_model',
+  VIEW_TOOLBOOK: 'view_toolbook',
   
-  // User kezelés
-  USER_VIEW: 'user.view',
-  USER_CREATE: 'user.create',
-  USER_EDIT: 'user.edit',
-  USER_DELETE: 'user.delete',
+  // Írási jogok
+  CREATE_COMPANY: 'create_company',
+  CREATE_SITE: 'create_site',
+  CREATE_BUILDING: 'create_building',
+  CREATE_FLOOR: 'create_floor',
+  CREATE_ROOM: 'create_room',
+  CREATE_CABINET: 'create_cabinet',
+  CREATE_DEPARTMENT: 'create_department',
+  CREATE_ITEM: 'create_item',
+  CREATE_MODEL: 'create_model',
+  CREATE_TOOLBOOK: 'create_toolbook',
   
-  // Company kezelés
-  COMPANY_VIEW: 'company.view',
-  COMPANY_CREATE: 'company.create',
-  COMPANY_EDIT: 'company.edit',
-  COMPANY_DELETE: 'company.delete',
+  // Módosítási jogok
+  EDIT_COMPANY: 'edit_company',
+  EDIT_SITE: 'edit_site',
+  EDIT_BUILDING: 'edit_building',
+  EDIT_FLOOR: 'edit_floor',
+  EDIT_ROOM: 'edit_room',
+  EDIT_CABINET: 'edit_cabinet',
+  EDIT_DEPARTMENT: 'edit_department',
+  EDIT_ITEM: 'edit_item',
+  EDIT_MODEL: 'edit_model',
+  EDIT_TOOLBOOK: 'edit_toolbook',
   
-  // Site kezelés
-  SITE_VIEW: 'site.view',
-  SITE_CREATE: 'site.create',
-  SITE_EDIT: 'site.edit',
-  SITE_DELETE: 'site.delete',
+  // Törlési jogok
+  DELETE_COMPANY: 'delete_company',
+  DELETE_SITE: 'delete_site',
+  DELETE_BUILDING: 'delete_building',
+  DELETE_FLOOR: 'delete_floor',
+  DELETE_ROOM: 'delete_room',
+  DELETE_CABINET: 'delete_cabinet',
+  DELETE_DEPARTMENT: 'delete_department',
+  DELETE_ITEM: 'delete_item',
+  DELETE_MODEL: 'delete_model',
+  DELETE_TOOLBOOK: 'delete_toolbook',
   
-  // Building kezelés
-  BUILDING_VIEW: 'building.view',
-  BUILDING_CREATE: 'building.create',
-  BUILDING_EDIT: 'building.edit',
-  BUILDING_DELETE: 'building.delete',
-  
-  // Floor kezelés
-  FLOOR_VIEW: 'floor.view',
-  FLOOR_CREATE: 'floor.create',
-  FLOOR_EDIT: 'floor.edit',
-  FLOOR_DELETE: 'floor.delete',
-  
-  // Room kezelés
-  ROOM_VIEW: 'room.view',
-  ROOM_CREATE: 'room.create',
-  ROOM_EDIT: 'room.edit',
-  ROOM_DELETE: 'room.delete',
-  
-  // Department kezelés
-  DEPARTMENT_VIEW: 'department.view',
-  DEPARTMENT_CREATE: 'department.create',
-  DEPARTMENT_EDIT: 'department.edit',
-  DEPARTMENT_DELETE: 'department.delete',
-  
-  // Cabinet kezelés
-  CABINET_VIEW: 'cabinet.view',
-  CABINET_CREATE: 'cabinet.create',
-  CABINET_EDIT: 'cabinet.edit',
-  CABINET_DELETE: 'cabinet.delete',
-  
-  // Model kezelés
-  MODEL_VIEW: 'model.view',
-  MODEL_CREATE: 'model.create',
-  MODEL_EDIT: 'model.edit',
-  MODEL_DELETE: 'model.delete',
-  
-  // Item kezelés
-  ITEM_VIEW: 'item.view',
-  ITEM_CREATE: 'item.create',
-  ITEM_EDIT: 'item.edit',
-  ITEM_DELETE: 'item.delete',
-  
-  // Move kezelés
-  MOVE_VIEW: 'move.view',
-  MOVE_CREATE: 'move.create',
-  MOVE_APPROVE: 'move.approve',
-  
-  // Scrappage kezelés
-  SCRAPPAGE_VIEW: 'scrappage.view',
-  SCRAPPAGE_CREATE: 'scrappage.create',
-  SCRAPPAGE_APPROVE: 'scrappage.approve',
-  
-  // Toolbook kezelés
-  TOOLBOOK_VIEW: 'toolbook.view',
-  TOOLBOOK_CREATE: 'toolbook.create',
-  TOOLBOOK_EDIT: 'toolbook.edit',
-  
-  // Inventory kezelés
-  INVENTORY_VIEW: 'inventory.view',
-  INVENTORY_CREATE: 'inventory.create',
-  INVENTORY_EDIT: 'inventory.edit',
+  // Speciális műveletek
+  MOVE_ITEM: 'move_item',
+  SCRAP_ITEM: 'scrap_item',
+  MANAGE_INVENTORY: 'manage_inventory',
+  MANAGE_ROLES: 'manage_roles',
 } as const;
 
 export type Permission = typeof PERMISSIONS[keyof typeof PERMISSIONS];
 
-export const PERMISSION_GROUPS = {
-  ADMIN: [PERMISSIONS.ADMIN],
-  ROLE_MANAGEMENT: [
-    PERMISSIONS.ROLE_VIEW,
-    PERMISSIONS.ROLE_CREATE,
-    PERMISSIONS.ROLE_EDIT,
-    PERMISSIONS.ROLE_DELETE
-  ],
-  USER_MANAGEMENT: [
-    PERMISSIONS.USER_VIEW,
-    PERMISSIONS.USER_CREATE,
-    PERMISSIONS.USER_EDIT,
-    PERMISSIONS.USER_DELETE
-  ],
-  LOCATION_MANAGEMENT: [
-    PERMISSIONS.COMPANY_VIEW, PERMISSIONS.COMPANY_CREATE, PERMISSIONS.COMPANY_EDIT, PERMISSIONS.COMPANY_DELETE,
-    PERMISSIONS.SITE_VIEW, PERMISSIONS.SITE_CREATE, PERMISSIONS.SITE_EDIT, PERMISSIONS.SITE_DELETE,
-    PERMISSIONS.BUILDING_VIEW, PERMISSIONS.BUILDING_CREATE, PERMISSIONS.BUILDING_EDIT, PERMISSIONS.BUILDING_DELETE,
-    PERMISSIONS.FLOOR_VIEW, PERMISSIONS.FLOOR_CREATE, PERMISSIONS.FLOOR_EDIT, PERMISSIONS.FLOOR_DELETE,
-    PERMISSIONS.ROOM_VIEW, PERMISSIONS.ROOM_CREATE, PERMISSIONS.ROOM_EDIT, PERMISSIONS.ROOM_DELETE,
-    PERMISSIONS.DEPARTMENT_VIEW, PERMISSIONS.DEPARTMENT_CREATE, PERMISSIONS.DEPARTMENT_EDIT, PERMISSIONS.DEPARTMENT_DELETE,
-    PERMISSIONS.CABINET_VIEW, PERMISSIONS.CABINET_CREATE, PERMISSIONS.CABINET_EDIT, PERMISSIONS.CABINET_DELETE
-  ],
-  ASSET_MANAGEMENT: [
-    PERMISSIONS.MODEL_VIEW, PERMISSIONS.MODEL_CREATE, PERMISSIONS.MODEL_EDIT, PERMISSIONS.MODEL_DELETE,
-    PERMISSIONS.ITEM_VIEW, PERMISSIONS.ITEM_CREATE, PERMISSIONS.ITEM_EDIT, PERMISSIONS.ITEM_DELETE,
-    PERMISSIONS.TOOLBOOK_VIEW, PERMISSIONS.TOOLBOOK_CREATE, PERMISSIONS.TOOLBOOK_EDIT
-  ],
-  OPERATIONS: [
-    PERMISSIONS.MOVE_VIEW, PERMISSIONS.MOVE_CREATE, PERMISSIONS.MOVE_APPROVE,
-    PERMISSIONS.SCRAPPAGE_VIEW, PERMISSIONS.SCRAPPAGE_CREATE, PERMISSIONS.SCRAPPAGE_APPROVE,
-    PERMISSIONS.INVENTORY_VIEW, PERMISSIONS.INVENTORY_CREATE, PERMISSIONS.INVENTORY_EDIT
-  ]
-};
-
-// Összes permission egy tömbben
+// Minden permission egy tömbbe
 export const ALL_PERMISSIONS = Object.values(PERMISSIONS);
+
+// Fő funkció: jogosultság ellenőrzése
+export async function checkPermission(appGroups: string[], requiredPermission: Permission): Promise<boolean> {
+  try {
+    console.log('🔐 CHECKING PERMISSION:', {
+      appGroups,
+      requiredPermission
+    });
+
+    // ADMIN mindent tud
+    if (await hasAdminPermission(appGroups)) {
+      console.log('✅ ADMIN ACCESS GRANTED');
+      return true;
+    }
+
+    // Keresés a role-ok között
+    const rolesWithPermission = await prisma.role.findMany({
+      where: {
+        azureGroupId: { in: appGroups },
+        permissions: {
+          some: {
+            permissionName: requiredPermission
+          }
+        }
+      }
+    });
+
+    const hasPermission = rolesWithPermission.length > 0;
+    console.log('📋 PERMISSION CHECK RESULT:', {
+      hasPermission,
+      rolesFound: rolesWithPermission.length
+    });
+
+    return hasPermission;
+  } catch (error) {
+    console.error('❌ Permission check error:', error);
+    return false;
+  }
+}
+
+// Admin jog ellenőrzése
+export async function hasAdminPermission(appGroups: string[]): Promise<boolean> {
+  try {
+    const adminRole = await prisma.role.findFirst({
+      where: {
+        azureGroupId: { in: appGroups },
+        permissions: {
+          some: {
+            permissionName: PERMISSIONS.ADMIN
+          }
+        }
+      }
+    });
+
+    const isAdmin = !!adminRole;
+    console.log('👑 ADMIN CHECK:', { isAdmin, appGroups });
+    
+    return isAdmin;
+  } catch (error) {
+    console.error('❌ Admin permission check error:', error);
+    return false;
+  }
+}
+
+// Felhasználó összes jogainak lekérése
+export async function getUserPermissions(appGroups: string[]): Promise<Permission[]> {
+  try {
+    console.log('📋 GETTING USER PERMISSIONS FOR APP GROUPS:', appGroups);
+
+    const rolesWithPermissions = await prisma.role.findMany({
+      where: {
+        azureGroupId: { in: appGroups }
+      },
+      include: {
+        permissions: true
+      }
+    });
+
+    console.log('🏷️ ROLES FOUND:', rolesWithPermissions.length);
+
+    const permissions = rolesWithPermissions.flatMap(role => 
+      role.permissions.map(p => p.permissionName as Permission)
+    );
+
+    // Duplikációk eltávolítása
+    const uniquePermissions = [...new Set(permissions)];
+    
+    console.log('✅ FINAL USER PERMISSIONS:', uniquePermissions);
+    return uniquePermissions;
+  } catch (error) {
+    console.error('❌ Get user permissions error:', error);
+    return [];
+  }
+}
