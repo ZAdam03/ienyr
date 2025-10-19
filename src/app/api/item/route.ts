@@ -34,7 +34,43 @@ export async function GET(req: NextRequest) {
   const token = await getToken({ req, secret });
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {
-    const items = await prisma.model.findMany();
+        const { searchParams } = new URL(req.url);
+        const limit = searchParams.get('limit');
+        const exclude = searchParams.get('exclude');
+        
+        const items = await prisma.item.findMany({
+            where: exclude ? { id: { not: exclude } } : {},
+            take: limit ? parseInt(limit) : undefined,
+            include: {
+                model: {
+                    select: {
+                        brand: true,
+                        model: true,
+                        type: true
+                    }
+                },
+                place: {
+                    where: {
+                        isActive: true
+                    },
+                    include: {
+                        room: {
+                            select: {
+                                description: true
+                            }
+                        },
+                        cabinet: {
+                            select: {
+                                description: true
+                            }
+                        }
+                    }
+                }
+            },
+            orderBy: {
+                description: 'asc'
+            }
+        });
     return NextResponse.json(items);
   } catch (error) {
     console.error('API error:', error);

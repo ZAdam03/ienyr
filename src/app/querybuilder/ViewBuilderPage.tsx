@@ -30,10 +30,17 @@ export default async function ViewBuilderPage() {
         },
       },
       scrappages: {
-        include: {
-          scrappage: true,
+        where: {
+          isFinished: false
         },
-      },
+        include: {
+          createdBy: {
+            select: {
+              name: true
+            }
+          }
+        }
+      }
     },
   });
 
@@ -50,9 +57,9 @@ export default async function ViewBuilderPage() {
     const parentId = parentMapping?.parentItemId ?? '';
     const parentDescription = parentMapping?.parentItem?.description ?? '';
 
-    const scrappageItem = item.scrappages[0];
-    const scrappageDescription = scrappageItem?.scrappage?.description ?? '';
-    const scrappageClosedAt = scrappageItem?.scrappage?.closedAt?.toISOString() ?? '';
+    const scrappageItem = item.scrappages[0]; 
+    const scrappageDescription = scrappageItem?.description ?? ''; 
+    const scrappageClosedAt = scrappageItem?.closedAt?.toISOString() ?? '';
 
 
     return {

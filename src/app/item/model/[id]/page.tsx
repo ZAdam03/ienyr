@@ -1,15 +1,21 @@
+// src\app\item\model\[id]\page.tsx
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import ModelDetailTable from './ModelDetailTable'; // külön komponens, client oldali
 import ItemTable from './ItemTable';
 
 interface Props {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }
 
-export default async function ModelDetailPage({ params }: Props) {
+export default async function Page({ params }: { params: { id: string } }) {
+    const { id } = await params;
+    // Explicit destructuring
+    const resolvedParams = await params;
+    const modelId = resolvedParams.id;
+    
     const model = await prisma.model.findUnique({
-        where: { id: params.id },
+        where: { id: modelId },
     });
 
     if (!model) {
@@ -135,10 +141,12 @@ export default async function ModelDetailPage({ params }: Props) {
                     <h3>{model.type}</h3>
                     <p>{model.weight ?? 'N/A'} kg</p>
                     <h4>Példányok száma: {countItems}</h4>
-                    <li><strong>Típus:</strong> {model.type}</li>
-                    <li><strong>Gyártó:</strong> {model.brand}</li>
-                    <li><strong>Modell:</strong> {model.model}</li>
-                    <li><strong>Súly:</strong> {model.weight ?? 'N/A'} kg</li>
+                    <ul className="list-none p-0">
+                        <li><strong>Típus:</strong> {model.type}</li>
+                        <li><strong>Gyártó:</strong> {model.brand}</li>
+                        <li><strong>Modell:</strong> {model.model}</li>
+                        <li><strong>Súly:</strong> {model.weight ?? 'N/A'} kg</li>
+                    </ul>
                 </div>
                 <div className="flex-auto">
                     {model.picture ? <img src={model.picture} alt="Kép" className="mt-2 max-w-xs" /> : 'Nincs kép'}

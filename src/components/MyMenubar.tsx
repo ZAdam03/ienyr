@@ -112,63 +112,63 @@ export default function MyMenubar() {
             icon: 'pi pi-map-marker',
             url: '/company'
         },
-        {
-            label: 'Projects',
-            icon: 'pi pi-search',
-            items: [
-                {
-                    // @ts-ignore
-                    label: 'Core',
-                    icon: 'pi pi-bolt',
-                    shortcut: '⌘+S',
-                    template: itemRenderer
-                },
-                {
-                    // @ts-ignore
-                    label: 'Blocks',
-                    icon: 'pi pi-server',
-                    shortcut: '⌘+B',
-                    template: itemRenderer
-                },
-                {
-                    // @ts-ignore
-                    label: 'UI Kit',
-                    icon: 'pi pi-pencil',
-                    shortcut: '⌘+U',
-                    template: itemRenderer
-                },
-                {
-                    // @ts-ignore
-                    separator: true
-                },
-                {
-                    // @ts-ignore
-                    label: 'Templates',
-                    icon: 'pi pi-palette',
-                    items: [
-                        {
-                            label: 'Apollo',
-                            icon: 'pi pi-palette',
-                            badge: 2,
-                            template: itemRenderer
-                        },
-                        {
-                            label: 'Ultima',
-                            icon: 'pi pi-palette',
-                            badge: 3,
-                            template: itemRenderer
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            label: 'Üzenetek',
-            icon: 'pi pi-envelope',
-            // @ts-ignore
-            badge: 3,
-            template: itemRenderer
-        }
+        // {
+        //     label: 'Projects',
+        //     icon: 'pi pi-search',
+        //     items: [
+        //         {
+        //             // @ts-ignore
+        //             label: 'Core',
+        //             icon: 'pi pi-bolt',
+        //             shortcut: '⌘+S',
+        //             template: itemRenderer
+        //         },
+        //         {
+        //             // @ts-ignore
+        //             label: 'Blocks',
+        //             icon: 'pi pi-server',
+        //             shortcut: '⌘+B',
+        //             template: itemRenderer
+        //         },
+        //         {
+        //             // @ts-ignore
+        //             label: 'UI Kit',
+        //             icon: 'pi pi-pencil',
+        //             shortcut: '⌘+U',
+        //             template: itemRenderer
+        //         },
+        //         {
+        //             // @ts-ignore
+        //             separator: true
+        //         },
+        //         {
+        //             // @ts-ignore
+        //             label: 'Templates',
+        //             icon: 'pi pi-palette',
+        //             items: [
+        //                 {
+        //                     label: 'Apollo',
+        //                     icon: 'pi pi-palette',
+        //                     badge: 2,
+        //                     template: itemRenderer
+        //                 },
+        //                 {
+        //                     label: 'Ultima',
+        //                     icon: 'pi pi-palette',
+        //                     badge: 3,
+        //                     template: itemRenderer
+        //                 }
+        //             ]
+        //         }
+        //     ]
+        // },
+        // {
+        //     label: 'Üzenetek',
+        //     icon: 'pi pi-envelope',
+        //     // @ts-ignore
+        //     badge: 3,
+        //     template: itemRenderer
+        // }
     ];
     
     const router = useRouter();

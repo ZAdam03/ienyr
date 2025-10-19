@@ -10,17 +10,27 @@ export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
         const floorId = searchParams.get('floorId');
+        const include = searchParams.get('include');
         
         const where = floorId ? { floorId } : {};
         
         const rooms = await prisma.room.findMany({
             where,
             include: {
-                floor: true,
+                floor: include === 'full' ? {
+                    include: {
+                        building: {
+                            include: {
+                                site: true
+                            }
+                        }
+                    }
+                } : true,
                 department: true,
                 lastModifiedBy: { select: { name: true } },
             },
         });
+        
         return NextResponse.json(rooms);
     } catch (error) {
         console.error('GET /api/room error:', error);
