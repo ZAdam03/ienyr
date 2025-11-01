@@ -1,6 +1,7 @@
 // src/app/api/item/department/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { requireViewPermission } from '@/lib/permission-middleware';
 
 const prisma = new PrismaClient();
 
@@ -8,6 +9,9 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // VIEW jogosultság ellenőrzése
+  const permissionError = await requireViewPermission('item', request);
+  if (permissionError) return permissionError;
   try {
     const departmentId = params.id;
 

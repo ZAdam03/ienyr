@@ -9,9 +9,9 @@ const prisma = new PrismaClient();
 
 export async function PATCH(req: NextRequest) {
 
-    // VIEW jogosultság ellenőrzése
-        const permissionError = await requireEditPermission('building', req);
-        if (permissionError) return permissionError;
+    // EDIT jogosultság ellenőrzése
+    const permissionError = await requireEditPermission('building', req);
+    if (permissionError) return permissionError;
     
     const body = await req.json();
     const { id: buildingId, description, isActive } = body;

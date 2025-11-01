@@ -3,13 +3,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { requireDeletePermission, requireViewPermission } from '@/lib/permission-middleware';
 
 const prisma = new PrismaClient();
 
 export async function DELETE(
-  request: NextRequest,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // DELETE jogosultság ellenőrzése
+  const permissionError = await requireDeletePermission('structure-mapping', req);
+  if (permissionError) return permissionError;
+  
   try {
     const { id } = await params;
 
@@ -75,9 +80,13 @@ export async function DELETE(
 }
 
 export async function GET(
-  request: NextRequest,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // VIEW jogosultság ellenőrzése
+  const permissionError = await requireViewPermission('structure-mapping', req);
+  if (permissionError) return permissionError;
+
   try {
     const { id } = await params;
 

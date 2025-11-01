@@ -3,37 +3,43 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { requireCreatePermission } from '@/lib/permission-middleware';
 
 const prisma = new PrismaClient();
 
 export async function POST(
-  request: NextRequest,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  try {
-    const { id } = await params;
+    // CREATE jogosultság ellenőrzése
+    const permissionError = await requireCreatePermission('move_approve', req);
+    if (permissionError) return permissionError;
+    
+    try {
+        const { id } = await params;
 
-    const session = await getServerSession(authOptions);
-    const userId = (session?.user as any)?.appUserId;
+        const session = await getServerSession(authOptions);
+        const userId = (session?.user as any)?.appUserId;
 
-    if (!userId) {
-      return NextResponse.json({ error: 'Nincs felhasználói azonosító' }, { status: 401 });
-    }
+        if (!userId) {
+        return NextResponse.json({ error: 'Nincs felhasználói azonosító' }, { status: 401 });
+        }
 
-    // Mozgatás lekérése
-    const move = await prisma.move.findUnique({
-      where: { id },
-      include: {
-        item: true
-      }
-    });
+        // Mozgatás lekérése
+        const move = await prisma.move.findUnique({
+            where: { id },
+            include: {
+                item: true
+            }
+        }
+    );
 
     if (!move) {
-      return NextResponse.json({ error: 'A mozgatás nem található' }, { status: 404 });
+        return NextResponse.json({ error: 'A mozgatás nem található' }, { status: 404 });
     }
 
     if (move.isFinished) {
-      return NextResponse.json({ error: 'A mozgatás már el lett fogadva' }, { status: 400 });
+        return NextResponse.json({ error: 'A mozgatás már el lett fogadva' }, { status: 400 });
     }
 
     // Tranzakcióban végrehajtjuk a műveleteket

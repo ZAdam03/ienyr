@@ -4,7 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { Permission } from '@/lib/permissions';
-import { requirePermission } from '@/lib/permission-middleware';
+import { requireManageRoles, requirePermission, requireViewPermission } from '@/lib/permission-middleware';
 
 const prisma = new PrismaClient();
 
@@ -12,6 +12,10 @@ export async function PUT(
     request: NextRequest,
     { params }: { params: { id: string } }
 ) {
+    // MANAGE_ROLES jogosultság ellenőrzése
+    const permissionError = await requireManageRoles(request);
+    if (permissionError) return permissionError;
+    
     const body = await request.json();
     const { permissions } = body;
 
@@ -23,9 +27,6 @@ export async function PUT(
     }
 
     try {
-        // Permission check - csak admin vagy role management joggal
-        const permissionError = await requirePermission(request, 'manage_roles');
-        if (permissionError) return permissionError;
         // Tranzakcióban frissítjük a permissions-öket
         const result = await prisma.$transaction(async (tx) => {
             // Régi permissions törlése
@@ -63,6 +64,12 @@ export async function GET(
         request: NextRequest,
         { params }: { params: { id: string } }
     ) {
+
+    // VIEW jogosultság ellenőrzése
+    // MANAGE_ROLES jogosultság ellenőrzése
+    const permissionError = await requireManageRoles(request);
+    if (permissionError) return permissionError;
+    
     try {
         // Permission check - csak admin vagy role management joggal
         const permissionError = await requirePermission(request, 'manage_roles');

@@ -1,13 +1,18 @@
 // src/app/api/role/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { requireViewPermission } from '@/lib/permission-middleware';
 
 const prisma = new PrismaClient();
 
 export async function GET(
-    request: NextRequest,
+    req: NextRequest,
     { params }: { params: { id: string } }
 ) {
+    // // VIEW jogosultság ellenőrzése NEM KELL MIVEL EZ ELLENŐRZI A JOGOT
+    // const permissionError = await requireViewPermission('role', req);
+    // if (permissionError) return permissionError;
+
     try {
         const role = await prisma.role.findUnique({
             where: { id: params.id },
