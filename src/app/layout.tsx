@@ -7,6 +7,7 @@ import MySidebar from "@/components/Sidebar";
 import { Button } from "primereact/button";
 import MyMenubar from "@/components/MyMenubar";
 import { Providers } from "@/providers";
+import { initializeAdminRole } from "@/lib/init-admin";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,6 +29,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  initializeAdminRole(); // Initialize admin role on app start
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
