@@ -3,13 +3,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { requireCreatePermission } from '@/lib/permission-middleware';
 
 const prisma = new PrismaClient();
 
 export async function POST(
-    request: NextRequest,
+    req: NextRequest,
     { params }: { params: { id: string } }
 ) {
+    // CREATE jogosultság ellenőrzése
+    const permissionError = await requireCreatePermission('scrappage_reject', req);
+    if (permissionError) return permissionError;
+    
     try {
         const { id } = await params;
 

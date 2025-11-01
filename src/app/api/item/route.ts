@@ -2,11 +2,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getToken } from 'next-auth/jwt';
+import { requireCreatePermission, requireViewPermission } from '@/lib/permission-middleware';
 
 const prisma = new PrismaClient();
 const secret = process.env.AUTH_SECRET!;
 
 export async function POST(req: NextRequest) {
+  // CREATE jogosultság ellenőrzése
+  const permissionError = await requireCreatePermission('item', req);
+  if (permissionError) return permissionError;
+
   const token = await getToken({ req, secret });
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const body = await req.json();
@@ -31,6 +36,10 @@ export async function POST(req: NextRequest) {
   }
 }
 export async function GET(req: NextRequest) {
+  // VIEW jogosultság ellenőrzése
+  const permissionError = await requireViewPermission('item', req);
+  if (permissionError) return permissionError;
+
   const token = await getToken({ req, secret });
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   try {

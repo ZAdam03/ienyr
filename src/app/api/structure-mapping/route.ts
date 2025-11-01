@@ -3,10 +3,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { requireCreatePermission } from '@/lib/permission-middleware';
 
 const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
+    // CREATE jogosultság ellenőrzése
+    const permissionError = await requireCreatePermission('structure-mapping', req);
+    if (permissionError) return permissionError;
+
     try {
         const body = await req.json();
         const { parentItemId, childItemId } = body;

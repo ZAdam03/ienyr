@@ -3,10 +3,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { requireCreatePermission, requireViewPermission } from '@/lib/permission-middleware';
 
 const prisma = new PrismaClient();
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+    // VIEW jogosultság ellenőrzése
+    const permissionError = await requireViewPermission('site', req);
+    if (permissionError) return permissionError;
+
     try {
         const sites = await prisma.site.findMany({
             include: {
@@ -22,6 +27,10 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+    // CREATE jogosultság ellenőrzése
+    const permissionError = await requireCreatePermission('site', req);
+    if (permissionError) return permissionError;
+    
     const body = await req.json();
     const {
         companyId,

@@ -3,10 +3,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { requireEditPermission } from '@/lib/permission-middleware';
 
 const prisma = new PrismaClient();
 
 export async function PATCH(req: NextRequest) {
+
+    // EDIT jogosultság ellenőrzése
+    const permissionError = await requireEditPermission('building', req);
+    if (permissionError) return permissionError;
+    
     const body = await req.json();
     const { id: buildingId, description, isActive } = body;
 

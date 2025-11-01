@@ -3,10 +3,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { requireCreatePermission, requireViewPermission } from '@/lib/permission-middleware';
 
 const prisma = new PrismaClient();
 
 export async function GET(req: NextRequest) {
+  // VIEW jogosultság ellenőrzése
+  const permissionError = await requireViewPermission('move', req);
+  if (permissionError) return permissionError;
+
   try {
     const { searchParams } = new URL(req.url);
     const isFinished = searchParams.get('isFinished');
@@ -48,6 +53,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  // CREATE jogosultság ellenőrzése
+  const permissionError = await requireCreatePermission('move', req);
+  if (permissionError) return permissionError;
+  
     try {
         const body = await req.json();
         const {
