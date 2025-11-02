@@ -38,26 +38,26 @@ export default function MyMenubar() {
                     icon: 'pi pi-fw pi-barcode',
                     url: '/item/model',
                 },
-                {
-                    label: 'Számítógépek',
-                    icon: 'pi pi-desktop',
-                    url: '/item/list',
-                },
-                {
-                    label: 'Mobiltelefonok',
-                    icon: 'pi pi-mobile',
-                    url: '/item/list'
-                },
-                {
-                    label: 'Nyomtatók',
-                    icon: 'pi pi-print',
-                    url: '/item/list'
-                },
-                {
-                    label: 'Szerverek',
-                    icon: 'pi pi-server',
-                    url: '/item/list'
-                }
+                // {
+                //     label: 'Számítógépek',
+                //     icon: 'pi pi-desktop',
+                //     url: '/item/list',
+                // },
+                // {
+                //     label: 'Mobiltelefonok',
+                //     icon: 'pi pi-mobile',
+                //     url: '/item/list'
+                // },
+                // {
+                //     label: 'Nyomtatók',
+                //     icon: 'pi pi-print',
+                //     url: '/item/list'
+                // },
+                // {
+                //     label: 'Szerverek',
+                //     icon: 'pi pi-server',
+                //     url: '/item/list'
+                // }
             ]
         },
         {
@@ -78,39 +78,50 @@ export default function MyMenubar() {
                             icon: 'pi pi-fw pi-desktop',
                             url: '/new/item',
                         },
-                        {
-                            label: 'Épület',
-                            icon: 'pi pi-fw pi-building'
-                        }
+                        // {
+                        //     label: 'Épület',
+                        //     icon: 'pi pi-fw pi-building'
+                        // }
                     ]
                 },
                 {
-                    label: 'Mozgatás',
-                    icon: 'pi pi-fw pi-arrow-right-arrow-left',
-                    url: '/eszkoz/mozgatas'
+                    label: 'Karbantartás',
+                    icon: 'pi pi-cog',
+                    url: '/maintenance'
                 },
                 {
-                    label: 'Selejtezés',
-                    icon: 'pi pi-fw pi-trash',
-                    url: '/eszkoz/seleztes'
-                },
-                {
-                    label: 'Leltározás',
-                    icon: 'pi pi-fw pi-search',
-                    url: '/eszkoz/leltar'
+                    label: 'Jogosultságok kezelése',
+                    icon: 'pi pi-key',
+                    url: '/role'
                 },
                 
-                {
-                    label: 'Jelentések',
-                    icon: 'pi pi-fw pi-chart-bar',
-                    url: '/eszkoz/reports'
-                },
+                // {
+                //     label: 'Leltározás',
+                //     icon: 'pi pi-fw pi-search',
+                //     url: '/eszkoz/leltar'
+                // },
+                
+                // {
+                //     label: 'Jelentések',
+                //     icon: 'pi pi-fw pi-chart-bar',
+                //     url: '/eszkoz/reports'
+                // },
             ]
         },
         {
             label: 'Lokációk',
             icon: 'pi pi-map-marker',
             url: '/company'
+        },
+        {
+            label: 'Mozgatás',
+            icon: 'pi pi-fw pi-arrow-right-arrow-left',
+            url: '/move'
+        },
+        {
+            label: 'Selejtezés',
+            icon: 'pi pi-fw pi-trash',
+            url: '/scrappage'
         },
         // {
         //     label: 'Projects',

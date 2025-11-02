@@ -298,7 +298,7 @@ model Site {
   createdAt        DateTime @default(now())
   lastModifiedAt   DateTime? @default(now())
   lastModifiedById String?
-  lastModifiedBy   User? @relation(fields: [lastModifiedById], references: [id])
+  lastModifiedBy   User? @relation(fields: [lastModifiedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   buildings        Building[]
 }
 model Building {
@@ -310,7 +310,7 @@ model Building {
   createdAt        DateTime @default(now())
   lastModifiedAt   DateTime? @default(now())
   lastModifiedById String?
-  lastModifiedBy   User? @relation(fields: [lastModifiedById], references: [id])
+  lastModifiedBy   User? @relation(fields: [lastModifiedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   floors           Floor[]
 }
 model Floor {
@@ -323,7 +323,7 @@ model Floor {
   createdAt        DateTime @default(now())
   lastModifiedAt   DateTime? @default(now())
   lastModifiedById String?
-  lastModifiedBy   User? @relation(fields: [lastModifiedById], references: [id])
+  lastModifiedBy   User? @relation(fields: [lastModifiedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   rooms            Room[]
   blueprint        FloorBlueprint[]
 }
@@ -332,14 +332,14 @@ model Room {
   floorId          String
   floor            Floor    @relation(fields: [floorId], references: [id])
   departmentId     String?
-  department       Department? @relation(fields: [departmentId], references: [id])
+  department       Department? @relation(fields: [departmentId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   description      String  // pl. tárgyaló, raktár, számlázás
   number           Int?
   isActive         Boolean  @default(true)
   createdAt        DateTime @default(now())
   lastModifiedAt   DateTime? @default(now())
   lastModifiedById String?
-  lastModifiedBy   User? @relation(fields: [lastModifiedById], references: [id])
+  lastModifiedBy   User? @relation(fields: [lastModifiedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   cabinets         Cabinet[]
   movedToRoomItems Move[] @relation("MoveToRoom")
   movedFromRoomItems Move[] @relation("MoveFromRoom")
@@ -357,7 +357,7 @@ model Cabinet {
   createdAt          DateTime @default(now())
   lastModifiedAt     DateTime? @default(now())
   lastModifiedById   String?
-  lastModifiedBy     User? @relation(fields: [lastModifiedById], references: [id])
+  lastModifiedBy     User? @relation(fields: [lastModifiedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   items              ItemPlace[] // ide kerülnek az eszközök, amik ebben a szekrényben vannak
 }
 model Department {
@@ -370,7 +370,7 @@ model Department {
   createdAt        DateTime @default(now())
   lastModifiedAt   DateTime? @default(now())
   lastModifiedById String?
-  lastModifiedBy   User? @relation(fields: [lastModifiedById], references: [id])
+  lastModifiedBy   User? @relation(fields: [lastModifiedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   rooms            Room[]
 }
 model FloorBlueprint {
@@ -394,7 +394,7 @@ model Scrappage {
   createdBy    User     @relation("ScrappageCreatedBy", fields: [createdById], references: [id])
   closedAt     DateTime?
   closedById   String?
-  closedBy     User?    @relation("ScrappageClosedBy", fields: [closedById], references: [id])
+  closedBy     User?    @relation("ScrappageClosedBy", fields: [closedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
 }
 
 // - leltározás
@@ -407,7 +407,7 @@ model Inventory {
   createdBy    User     @relation(fields: [createdById], references: [id])
   closedAt     DateTime?
   closedById   String?
-  closedBy     User?    @relation("InventoryClosedBy", fields: [closedById], references: [id])
+  closedBy     User?    @relation("InventoryClosedBy", fields: [closedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   numberOfActiveToolbooks Int?
   numberOfItems Int?
   items        InventoryItem[]
@@ -433,7 +433,7 @@ model InventoryIssue {
   inventory    Inventory @relation(fields: [inventoryId], references: [id])
   createdAt    DateTime @default(now())
   createdById  String
-  createdBy    User     @relation(fields: [createdById], references: [id])
+  createdBy    User     @relation(fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
 }
 
 // - mozgatás
@@ -444,19 +444,19 @@ model Move {
   moveFromRoomId      String?
   moveFromRoom        Room?    @relation("MoveFromRoom", fields: [moveFromRoomId], references: [id])
   moveToRoomId        String?
-  moveToRoom          Room?    @relation("MoveToRoom", fields: [moveToRoomId], references: [id])
+  moveToRoom          Room?    @relation("MoveToRoom", fields: [moveToRoomId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   moveFromToolbookId  String?
-  moveFromToolbook    Room?    @relation("MoveFromToolbook", fields: [moveFromToolbookId], references: [id])
+  moveFromToolbook    Room?    @relation("MoveFromToolbook", fields: [moveFromToolbookId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   moveToToolbookId    String?
-  moveToToolbook      Room?    @relation("MoveToToolbook", fields: [moveToToolbookId], references: [id])
+  moveToToolbook      Room?    @relation("MoveToToolbook", fields: [moveToToolbookId], references: [id], onUpdate: NoAction, onDelete: NoAction)
   description         String?
   isFinished          Boolean  @default(false)
   createdAt           DateTime @default(now())
   createdById         String
-  createdBy           User     @relation("MoveCreatedBy", fields: [createdById], references: [id])
+  createdBy           User     @relation("MoveCreatedBy", fields: [createdById], references: [id], onUpdate: NoAction, onDelete: NoAction)
   closedAt            DateTime?
   closedById          String?
-  closedBy            User?    @relation("MoveClosedBy", fields: [closedById], references: [id])
+  closedBy            User?    @relation("MoveClosedBy", fields: [closedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
 }
 
 model Message {
@@ -483,5 +483,5 @@ model Maintenance {
   createdById   String
   createdBy     User     @relation("MaintenanceCreatedBy", fields: [createdById], references: [id])
   completedById String?
-  completedBy   User?    @relation("MaintenanceCompletedBy", fields: [completedById], references: [id])
+  completedBy   User?    @relation("MaintenanceCompletedBy", fields: [completedById], references: [id], onUpdate: NoAction, onDelete: NoAction)
 }
