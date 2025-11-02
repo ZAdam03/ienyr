@@ -18,6 +18,17 @@ export default function MyMenubar() {
             {item.shortcut && <span className="ml-auto border-1 surface-border border-round surface-100 text-xs p-1">{item.shortcut}</span>}
         </a>
     );
+    const { data: permissions } = useSession();
+    const userPermissions = (permissions as any)?.user?.permissions || [];
+
+    const hasPermission = (permissionToCheck: string) => 
+        userPermissions.includes(permissionToCheck);
+
+    const canView = (entity: string) => hasPermission(`view_${entity}`);
+
+
+    console.log("IDEEEEEE: "+canView('view_role'));
+
     const items: MenuItem[] = [
         {
             label: 'Eszközök',
@@ -63,6 +74,7 @@ export default function MyMenubar() {
         {
             label: 'Funkciók',
             icon: 'pi pi-star',
+            visible: hasPermission('move_item') || hasPermission('scrap_item') || hasPermission('manage_roles') || hasPermission('manage_inventory'),
             items: [
                 {
                     label: 'Új',
@@ -87,12 +99,14 @@ export default function MyMenubar() {
                 {
                     label: 'Karbantartás',
                     icon: 'pi pi-cog',
-                    url: '/maintenance'
+                    url: '/maintenance',
+                    visible: hasPermission('manage_inventory')
                 },
                 {
                     label: 'Jogosultságok kezelése',
                     icon: 'pi pi-key',
-                    url: '/role'
+                    url: '/role',
+                    visible: hasPermission('manage_roles')
                 },
                 
                 // {
@@ -106,7 +120,7 @@ export default function MyMenubar() {
                 //     icon: 'pi pi-fw pi-chart-bar',
                 //     url: '/eszkoz/reports'
                 // },
-            ]
+            ].filter(item => item.visible !== false)
         },
         {
             label: 'Lokációk',
@@ -116,12 +130,14 @@ export default function MyMenubar() {
         {
             label: 'Mozgatás',
             icon: 'pi pi-fw pi-arrow-right-arrow-left',
-            url: '/move'
+            url: '/move',
+            visible: canView('move')
         },
         {
             label: 'Selejtezés',
             icon: 'pi pi-fw pi-trash',
-            url: '/scrappage'
+            url: '/scrappage',
+            visible: canView('scrappage')
         },
         // {
         //     label: 'Projects',
