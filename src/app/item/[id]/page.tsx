@@ -10,6 +10,7 @@ import MoveDialog from './MoveDialog';
 import ScrapDialog from './ScrapDialog';
 import StructureDialog from './StructureDialog';
 import StructureTable from './StructureTable';
+import MaintenanceDialog from './MaintenanceDialog';
 
 interface Props {
     params: { id: string };
@@ -161,6 +162,7 @@ export default async function ItemPage({ params }: Props) {
                         ]}
                     />
                     <StructureDialog itemId={item.id} />
+                    <MaintenanceDialog itemId={item.id} />
                 </div>
 
                 <div className="card">

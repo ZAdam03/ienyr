@@ -70,6 +70,8 @@ model User {
   modifiedRooms Room[]
   modifiedCabinets Cabinet[]
   modifiedDepartments Department[]
+  createdMaintenances Maintenance[] @relation("MaintenanceCreatedBy")
+  completedMaintenances Maintenance[] @relation("MaintenanceCompletedBy")
 }
 
 model Toolbook {
@@ -160,6 +162,7 @@ model Item {
   scrappages   Scrappage[]
   inventories  InventoryItem[]
   moves        Move[]
+  maintenances Maintenance[]
 }
 
 model ItemMetaData {
@@ -466,3 +469,19 @@ model Message {
   isRead       Boolean  @default(false)
 }
 
+// - Maintenance
+model Maintenance {
+  id            String   @id @default(uuid())
+  itemId        String
+  item          Item     @relation(fields: [itemId], references: [id])
+  description   String?
+  isCompleted   Boolean  @default(false)
+  frequencyDays Int?  // e.g., "monthly = 30", "yearly = 365", "weekly = 7" segítség a lezéréskor egy új időpont kiszámolásához
+  scheduledAt   DateTime
+  completedAt   DateTime?
+  createdAt     DateTime @default(now())
+  createdById   String
+  createdBy     User     @relation("MaintenanceCreatedBy", fields: [createdById], references: [id])
+  completedById String?
+  completedBy   User?    @relation("MaintenanceCompletedBy", fields: [completedById], references: [id])
+}

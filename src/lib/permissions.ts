@@ -25,7 +25,10 @@ export type Entity =
   | 'scrappage'
   | 'scrappage_approve'
   | 'scrappage_reject'
-  | 'role';
+  | 'role'
+  | 'maintenance'
+  | 'maintenance-complete'
+  | 'maintenance-reject';
 
 export type Action = 'view' | 'create' | 'edit' | 'delete';
 
@@ -51,6 +54,7 @@ export const PERMISSIONS = {
   VIEW_SCRAPPAGE: 'view_scrappage',
   VIEW_MOVE: 'view_move',
   VIEW_STRUCTURE_MAPPING: 'view_structure-mapping',
+  VIEW_MAINTENANCE: 'view_maintenance',
   
   // Írási jogok
   CREATE_COMPANY: 'create_company',
@@ -65,6 +69,8 @@ export const PERMISSIONS = {
   CREATE_TOOLBOOK: 'create_toolbook',
   CREATE_MOVE: 'create_move',  // New permission
   CREATE_SCRAPPAGE: 'create_scrappage',  // New permission
+  CREATE_STRUCTURE_MAPPING: 'create_structure-mapping',
+  CREATE_MAINTENANCE: 'create_maintenance',
   
   // Módosítási jogok
   EDIT_COMPANY: 'edit_company',
@@ -93,6 +99,7 @@ export const PERMISSIONS = {
   DELETE_TOOLBOOK: 'delete_toolbook',
   DELETE_MOVE: 'delete_move',  // New permission
   DELETE_SCRAPPAGE: 'delete_scrappage',  // New permission
+  DELETE_STRUCTURE_MAPPING: 'delete_structure-mapping',
 
   // Speciális műveletek
   MOVE_ITEM: 'move_item',
@@ -106,6 +113,8 @@ export const PERMISSIONS = {
   REJECT_MOVE: 'reject_move',  // New permission
   APPROVE_SCRAPPAGE: 'approve_scrappage',  // New permission
   REJECT_SCRAPPAGE: 'reject_scrappage',  // New permission
+  MAINTENANCE_COMPLETE: 'maintenance-complete',
+  MAINTENANCE_REJECT: 'maintenance-reject',
 } as const;
 
 // TÍPUSBIZTOS Permission típus
