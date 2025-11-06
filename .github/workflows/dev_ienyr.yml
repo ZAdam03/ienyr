@@ -43,29 +43,26 @@ jobs:
       contents: read #This is required for actions/checkout
 
     steps:
-      - name: Download artifact from build job
+      - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
           name: node-app
-      
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_9BC9CB0C15294DC6A48AAAB2D84601F1 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_CE1A255242A64C51B6A386214D2789F0 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_670F97F024BA406B90C463E3758A6CB0 }}
 
-      # 🔹 Create .env with database URL from GitHub Secret
-      - name: Create environment file
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '24.x'
+
+      # 🔹 Install Prisma only (gyorsabb, nem kell mindent újra)
+      - name: Install Prisma CLI
+        run: npm install prisma @prisma/client
+
+      - name: Create .env with DB URL
         run: |
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
           cat .env
 
-      # 🔹 Make prisma binary executable (has to be chmod’d in some runners)
-      - name: Fix Prisma permissions
-        run: chmod +x node_modules/.bin/prisma
-
-      # 🔹 Run Prisma commands here (in deploy job!)
+      # 🔹 (nem kell chmod, mert most tényleg ott van a bináris)
       - name: Run Prisma migrations
         run: |
           npx prisma generate
@@ -73,7 +70,13 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      # 🔹 Deploy to Azure Web App
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_9BC9CB0C15294DC6A48AAAB2D84601F1 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_CE1A255242A64C51B6A386214D2789F0 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_670F97F024BA406B90C463E3758A6CB0 }}
+
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
@@ -82,4 +85,3 @@ jobs:
           package: .
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          
