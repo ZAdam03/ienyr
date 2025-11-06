@@ -11,7 +11,7 @@ generator client {
 
 datasource db {
   provider = "sqlserver"
-  url      = env("DATABASE_URL")
+  url      = env("SQLAZURECONNSTR_DATABASE_URL")
 }
 
 //jogosultságok
