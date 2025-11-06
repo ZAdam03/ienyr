@@ -32,7 +32,7 @@ jobs:
       - name: Run Prisma migrations and generate client
         run: |
           npx prisma generate
-          npx prisma migrate dev --name initial
+          npx prisma migrate deploy
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
