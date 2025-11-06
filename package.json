@@ -6,7 +6,7 @@
     "setup": "npm install && npx prisma migrate dev --name initial && npx prisma generate && npm run dev",
     "dev": "next dev --turbopack",
     "build": "next build",
-    "start": "npx prisma migrate deploy && npx prisma generate && next start",
+    "start": "npm run dev",
     "lint": "next lint"
   },
   "dependencies": {
