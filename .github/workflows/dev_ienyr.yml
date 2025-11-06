@@ -29,6 +29,12 @@ jobs:
           npm run build --if-present
           npm run test --if-present
 
+      # 🔹 Add .env environment variables from GitHub Secrets
+      - name: Set environment variables
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+
+      # 🔹 Prisma generate + migrate
       - name: Run Prisma migrations and generate client
         run: |
           npx prisma generate
