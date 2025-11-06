@@ -29,17 +29,6 @@ jobs:
           npm run build --if-present
           npm run test --if-present
 
-      # 🔹 Add .env environment variables from GitHub Secrets
-      - name: Set environment variables
-        run: |
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-
-      # 🔹 Prisma generate + migrate
-      - name: Run Prisma migrations and generate client
-        run: |
-          npx prisma generate
-          npx prisma migrate deploy
-
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -66,11 +55,31 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_CE1A255242A64C51B6A386214D2789F0 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_670F97F024BA406B90C463E3758A6CB0 }}
 
-      - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
+      # 🔹 Create .env with database URL from GitHub Secret
+      - name: Create environment file
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
+          cat .env
+
+      # 🔹 Make prisma binary executable (has to be chmod’d in some runners)
+      - name: Fix Prisma permissions
+        run: chmod +x node_modules/.bin/prisma
+
+      # 🔹 Run Prisma commands here (in deploy job!)
+      - name: Run Prisma migrations
+        run: |
+          npx prisma generate
+          npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      # 🔹 Deploy to Azure Web App
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'ienyr'
           slot-name: 'Production'
           package: .
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           
