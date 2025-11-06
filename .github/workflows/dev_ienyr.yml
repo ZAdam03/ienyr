@@ -29,6 +29,23 @@ jobs:
           npm run build --if-present
           npm run test --if-present
 
+      - name: Get DATABASE_URL from Azure
+        id: get-db-url
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            URL=$(az webapp config connection-string list \
+              --name ienyr \
+              --resource-group ienyr-rg \
+              --query "[?name=='DATABASE_URL'].value" -o tsv)
+            echo "DATABASE_URL=$URL" >> $GITHUB_ENV
+
+      # 🔹 Prisma generate + migrate
+      - name: Run Prisma migrations and generate client
+        run: |
+          npx prisma generate
+          npx prisma migrate deploy
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -43,33 +60,11 @@ jobs:
       contents: read #This is required for actions/checkout
 
     steps:
-      - name: Download build artifact
+      - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: node-app
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '24.x'
-
-      # 🔹 Install Prisma only (gyorsabb, nem kell mindent újra)
-      - name: Install Prisma CLI
-        run: npm install prisma @prisma/client
-
-      - name: Create .env with DB URL
-        run: |
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env
-          cat .env
-
-      # 🔹 (nem kell chmod, mert most tényleg ott van a bináris)
-      - name: Run Prisma migrations
-        run: |
-          npx prisma generate
-          npx prisma migrate deploy
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-
+      
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -77,11 +72,11 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_CE1A255242A64C51B6A386214D2789F0 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_670F97F024BA406B90C463E3758A6CB0 }}
 
-      - name: Deploy to Azure Web App
+      - name: 'Deploy to Azure Web App'
+        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'ienyr'
           slot-name: 'Production'
           package: .
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          
